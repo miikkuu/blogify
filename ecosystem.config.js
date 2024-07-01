@@ -6,7 +6,7 @@ module.exports = {
       script: "npm",
       args: "start",
       instances: 1,
-      exec_mode: "fork",
+      exec_mode: "cluster", // Use "cluster" for better performance
       autorestart: true,
       watch: false,
       env: {
@@ -20,18 +20,17 @@ module.exports = {
     },
     {
       name: "client",
-      script: "npm",
-      args: "run serve",
       cwd: "./client",
+      script: "npm",
+      args: "run build", // Use "build" for React production build
       instances: 1,
+      exec_mode: "fork", // Use "fork" for client-side applications
       autorestart: true,
-      exec_mode: "fork",
       watch: false,
       env: {
         NODE_ENV: "production",
         PORT: 3000,
         PM2_SERVE_PORT: 3000
-
       }
     }
   ]

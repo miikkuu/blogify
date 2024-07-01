@@ -8,21 +8,18 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: Blogapp
+    environment : Blogapp
+
     env:
       MONGO_URI: ${{ secrets.MONGO_URI }}
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
       PORT: ${{ secrets.PORT }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_REGION: ${{ secrets.AWS_REGION}}
       AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
 
     steps:
-      - name: Log environment variables
-        run: |
-          echo "PORT: $PORT"
-
       - name: Checkout code
         uses: actions/checkout@v2
 
@@ -31,13 +28,35 @@ jobs:
         with:
           node-version: '22.3.0'
 
+      - name: Install dependencies
+        run: npm install
+         
+
+      - name: Install PM2
+        run: npm install pm2 -g
+
+      
+
+      - name: Build React app 
+        run: |
+          cd client
+          npm install
+          npm run build
+          cd ..
+
+      - name: Dependencies of Server
+        run: |
+          cd api
+          npm install
+          cd ..
+
       - name: Deploy to Elastic Beanstalk
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-          AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
+          AWS_REGION: ${{ env.AWS_REGION }}
+          AWS_BUCKET_NAME: ${{ env.AWS_BUCKET_NAME }}
         run: |
           pip install awsebcli
-          eb init -p node.js -r ${{ secrets.AWS_REGION }} blogify --platform node.js
+          eb init -p node.js -r ${{ env.AWS_REGION }} blogify --platform node.js
           eb deploy Blogify-env
