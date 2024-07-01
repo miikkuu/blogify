@@ -49,4 +49,4 @@ jobs:
         run: |
           pip install awsebcli
           eb init -p node.js -r ${{ env.AWS_REGION }} blogify --platform node.js
-          eb deploy blogify-environment
+          eb deploy Blogify-environment
