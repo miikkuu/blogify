@@ -1,0 +1,28 @@
+# Node modules
+/node_modules
+/api/node_modules
+/client/node_modules
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Build output
+/client/build
+
+# Environment variables
+.env
+
+# PM2 logs
+*.log
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Directories for local environments
+.DS_Store
+.idea/
+.vscode/
+*.sublime-workspace
