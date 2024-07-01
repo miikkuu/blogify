@@ -1,5 +1,6 @@
 const Post = require('../models/Post');
 const jwt = require('jsonwebtoken');
+const Comment = require('../models/Comment');
 const { postValidation } = require('../validations/postValidation');
 const { s3Client } = require('../config/s3Config');
 const { DeleteObjectCommand } = require('@aws-sdk/client-s3');
