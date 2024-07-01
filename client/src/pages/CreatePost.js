@@ -18,7 +18,7 @@ export default function CreatePost() {
     if (files?.[0]) data.set('file', files[0]);
 
     try {
-      const response = await fetch('http://localhost:4000/posts', {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/posts`, {
         method: 'POST',
         body: data,
         credentials: 'include',

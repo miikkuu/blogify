@@ -11,7 +11,7 @@ export default function Post({ _id, title, summary, cover, createdAt, author }) 
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl my-5 h-auto md:h-[380px]">
+    <div className="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl my-5 h-auto md:h-[350px]">
       <div className="flex flex-col justify-between h-full">
         <div className="flex-shrink-0">
           <Link to={`/post/${_id}`}>

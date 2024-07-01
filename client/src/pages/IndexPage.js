@@ -3,12 +3,12 @@ import Post from "../components/Post";
 
 export default function IndexPage() {
   const [posts, setPosts] = useState([]);
-
   useEffect(() => {
-    fetch('http://localhost:4000/posts')
+    fetch(`${process.env.REACT_APP_BACKEND_URL}/posts`)
       .then(response => response.json())
-      .then(posts => setPosts(posts) && console.log(posts)
-           )
+      .then(posts => {
+        setPosts(posts); // Set the posts state
+      })
       .catch(error => console.error('Error fetching posts:', error));
   }, []);
 

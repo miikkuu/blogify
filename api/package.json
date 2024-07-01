@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "A blog application with a Node.js backend using the MVC structure.",
   "main": "index.js",
+  "homepage" : ".",
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js"

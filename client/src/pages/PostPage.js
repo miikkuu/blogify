@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useEffect , useContext, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom"; // Step 1: Import useNavigate
 import { UserContext } from "../contexts/UserContext";
 import CommentSection from "../components/CommentSection";
@@ -13,7 +13,7 @@ export default function PostPage() {
 
   async function fetchPostInfo() {
     try {
-      const response = await fetch(`http://localhost:4000/posts/${id}`);
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/posts/${id}`);
       if (!response.ok) {
         throw new Error("Failed to fetch post");
       }
@@ -24,13 +24,15 @@ export default function PostPage() {
       setError("Failed to load the post. Please try again later.");
     }
   }
-  fetchPostInfo();
-
+  useEffect(() => {
+    fetchPostInfo();
+  }, [id]);
+  
   async function handleLike() {
     const status = isLiked ? `unlike` : `like`;
     try {
       const response = await fetch(
-        `http://localhost:4000/posts/${id}/likeStatus?action=${status}`,
+        `${process.env.REACT_APP_BACKEND_URL}/posts/${id}/likeStatus?action=${status}`,
         {
           method: "POST",
           credentials: "include",
@@ -51,7 +53,7 @@ export default function PostPage() {
 
   async function handleDelete() {
     try {
-      const response = await fetch(`http://localhost:4000/posts/${id}`, {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/posts/${id}`, {
         method: "DELETE",
         credentials: "include",
       });

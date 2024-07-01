@@ -12,7 +12,7 @@ export default function EditPost() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch(`http://localhost:4000/posts/${id}`)
+    fetch(`${process.env.REACT_APP_BACKEND_URL}/posts/${id}`)
       .then(response => response.json())
       .then(postInfo => {
         setTitle(postInfo.title);
@@ -36,7 +36,7 @@ export default function EditPost() {
     }
 
     try {
-      const response = await fetch('http://localhost:4000/posts', {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/posts`, {
         method: 'PUT',
         body: data,
         credentials: 'include',

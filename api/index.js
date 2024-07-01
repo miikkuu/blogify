@@ -10,7 +10,15 @@ const connectDB = require('./config/db'); // connectDB function
 const app = express();
 connectDB(); // Connect to MongoDB
 
-app.use(cors({ credentials: true, origin: 'http://localhost:3000' }));
+app.use(cors({ credentials: true, origin: [`${process.env.DOMAIN_URL}`] }));
+//print console as to which client is making request
+app.use((req, res, next) => {
+  console.log('Request from:', req.headers.origin);
+  console.log('ip adress of user is: ', req.ip);
+
+  next();
+});
+
 app.use(express.json());
 app.use(cookieParser());
 app.use(morgan('dev'));

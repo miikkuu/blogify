@@ -9,7 +9,7 @@ export default function CommentSection({ postId }) {
 
   const fetchComments = useCallback(async () => {
     try {
-      const response = await fetch(`http://localhost:4000/posts/${postId}/comments`);
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/posts/${postId}/comments`);
       if (response.ok) {
         await response.json().then((data) => setComments(data));
       } else {
@@ -27,7 +27,7 @@ export default function CommentSection({ postId }) {
   async function handleSubmitComment(e) {
     e.preventDefault();
     try {
-      const response = await fetch(`http://localhost:4000/posts/${postId}/comments`, {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/posts/${postId}/comments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
