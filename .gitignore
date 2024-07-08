@@ -13,7 +13,7 @@ npm-debug.log*
 
 # Environment variables
 .env
-
+#
 # PM2 logs
 *.log
 pids
