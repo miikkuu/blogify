@@ -1,15 +1,13 @@
-import { useContext, useState } from "react";
+import { useState } from "react";
 import { Navigate } from "react-router-dom";
-import { UserContext } from "../contexts/UserContext";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [redirect, setRedirect] = useState(false);
   const [error, setError] = useState('');
-  const { setUserInfo } = useContext(UserContext);
+  const [redirect, setRedirect] = useState(false);
 
-  async function login(ev) {
+  async function register(ev) {
     ev.preventDefault();
     setError('');
 
@@ -19,33 +17,31 @@ export default function LoginPage() {
     }
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/auth/login`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/auth/register`, {
         method: 'POST',
         body: JSON.stringify({ username, password }),
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
       });
 
-      if (response.ok) {
-        const userInfo = await response.json();
-        setUserInfo(userInfo);
+      if (response.status === 200) {
         setRedirect(true);
       } else {
-        setError('Invalid username or password');
+        const data = await response.json();
+        setError(data.message || 'Registration failed');
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Registration error:', error);
       setError('An error occurred. Please try again.');
     }
   }
 
   if (redirect) {
-    return <Navigate to={'/'} />
+    return <Navigate to="/login" />;
   }
 
   return (
-    <form className="max-w-md mx-auto mt-8" onSubmit={login}>
-      <h1 className="text-3xl font-bold mb-6 text-center">Login</h1>
+    <form className="max-w-md mx-auto mt-8" onSubmit={register}>
+      <h1 className="text-3xl font-bold mb-6 text-center">Register</h1>
       {error && <p className="text-red-500 mb-4">{error}</p>}
       <input
         type="text"
@@ -62,7 +58,7 @@ export default function LoginPage() {
         className="w-full p-2 mb-6 border border-gray-300 rounded"
       />
       <button className="w-full p-2 bg-black text-white rounded hover:bg-gray-800">
-        Login
+        Register
       </button>
     </form>
   );

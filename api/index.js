@@ -10,24 +10,18 @@ const connectDB = require('./config/db'); // connectDB function
 const app = express();
 connectDB(); // Connect to MongoDB
 
-app.use(cors({ credentials: true, origin: [`${process.env.DOMAIN_URL}`] }));
-//print console as to which client is making request
-app.use((req, res, next) => {
-  console.log('Request from:', req.headers.origin);
-  console.log('ip adress of user is: ', req.ip);
+app.use(cors({ credentials: true, origin: [`${process.env.CORS_DOMAIN_URL}` , 'http://localhost:5173'] }));
 
-  next();
-});
-
+// Middlewares
 app.use(express.json());
 app.use(cookieParser());
 app.use(morgan('dev'));
-app.use('/uploads', express.static(__dirname + '/uploads'));
+app.use('/api/uploads', express.static(__dirname + '/uploads'));
 
 // Routes
-app.use('/auth', authRoutes);
-app.use('/posts', postRoutes);
-app.delete('/comments/:commentId', require('./controllers/commentController').deleteComment);
+app.use('/api/auth', authRoutes);
+app.use('/api/posts', postRoutes);
+app.delete('/api/comments/:commentId', require('./controllers/commentController').deleteComment);
 
 
 // Error handling middleware

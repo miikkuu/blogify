@@ -4,7 +4,7 @@ import Post from "../components/Post";
 export default function IndexPage() {
   const [posts, setPosts] = useState([]);
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_BACKEND_URL}/posts`)
+    fetch(`${import.meta.env.VITE_API_BACKEND_URL}/posts`)
       .then(response => response.json())
       .then(posts => {
         setPosts(posts); // Set the posts state

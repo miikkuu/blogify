@@ -13,7 +13,7 @@ export default function PostPage() {
 
   async function fetchPostInfo() {
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/posts/${id}`);
+      const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/posts/${id}`);
       if (!response.ok) {
         throw new Error("Failed to fetch post");
       }
@@ -32,7 +32,7 @@ export default function PostPage() {
     const status = isLiked ? `unlike` : `like`;
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_URL}/posts/${id}/likeStatus?action=${status}`,
+        `${import.meta.env.VITE_API_BACKEND_URL}/posts/${id}/likeStatus?action=${status}`,
         {
           method: "POST",
           credentials: "include",
@@ -53,7 +53,7 @@ export default function PostPage() {
 
   async function handleDelete() {
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/posts/${id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/posts/${id}`, {
         method: "DELETE",
         credentials: "include",
       });

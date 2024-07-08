@@ -18,7 +18,7 @@ export default function CreatePost() {
     if (files?.[0]) data.set('file', files[0]);
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/posts`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/posts`, {
         method: 'POST',
         body: data,
         credentials: 'include',

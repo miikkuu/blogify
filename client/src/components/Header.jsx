@@ -6,7 +6,7 @@ export default function Header() {
   const { userInfo, setUserInfo } = useContext(UserContext);
 
   function logout() {
-    fetch(`${process.env.REACT_APP_BACKEND_URL}/auth/logout`, {
+    fetch(`${import.meta.env.VITE_API_BACKEND_URL}/auth/logout`, {
       credentials: 'include',
       method: 'POST',
     });

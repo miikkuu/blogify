@@ -1,42 +1,27 @@
-version: '3'
+version: '3.8'
+
 services:
   client:
     build:
       context: ./client
       dockerfile: Dockerfile
       args:
-        - REACT_APP_BACKEND_URL=${REACT_APP_BACKEND_URL}
+        VITE_API_BACKEND_URL: ${VITE_API_BACKEND_URL}
     ports:
-      - "3000:80"
+      - "5173:80"
     depends_on:
       - api
-    environment:
-      - REACT_APP_BACKEND_URL=${REACT_APP_BACKEND_URL}
-      
+    env_file:
+      - .env
 
   api:
     build:
       context: ./api
       dockerfile: Dockerfile
-      args:    
-        - MONGO_URI=${MONGO_URI}
-        - JWT_SECRET=${JWT_SECRET}
-        - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-        - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-        - AWS_REGION=${AWS_REGION}
-        - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
-        - DOMAIN_URL=${DOMAIN_URL}
     ports:
       - "4000:4000"
-    environment:
-      - MONGO_URI=${MONGO_URI}
-      - JWT_SECRET=${JWT_SECRET}
-      - PORT=${PORT}
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - AWS_REGION=${AWS_REGION}
-      - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
-      - DOMAIN_URL=${DOMAIN_URL}
+    env_file:
+      - .env  
 
   nginx:
     image: nginx:alpine

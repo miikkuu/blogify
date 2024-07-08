@@ -12,7 +12,7 @@ export default function EditPost() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_BACKEND_URL}/posts/${id}`)
+    fetch(`${import.meta.env.VITE_API_BACKEND_URL}/posts/${id}`)
       .then(response => response.json())
       .then(postInfo => {
         setTitle(postInfo.title);
@@ -36,7 +36,7 @@ export default function EditPost() {
     }
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/posts`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/posts`, {
         method: 'PUT',
         body: data,
         credentials: 'include',
