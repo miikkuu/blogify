@@ -81,7 +81,7 @@ export default function PostPage() {
       <div className="flex items-center justify-between mb-4">
         <div>
           <time
-            className="text-gray-500 block mb-2"
+            className="text-gray-500 dark:text-gray-300 block mb-2"
             style={{ fontSize: "0.875rem" }}
           >
             {new Date(postInfo.createdAt).toLocaleDateString("en-GB", {
@@ -96,16 +96,16 @@ export default function PostPage() {
               hour12: false,
             })}
           </time>
-          <p className="text-gray-700">by @{postInfo.author.username}</p>
+          <p className="text-gray-700 dark:text-gray-500">by @{postInfo.author.username}</p>
         </div>
         <div className="flex items-center">
           <button
             onClick={handleLike}
-            className="flex items-center mr-4 text-gray-600 hover:text-black"
+            className="flex items-center mr-4 text-gray-600 dark:text-gray-300 hover:text-black"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 mr-1"
+              className="h-6 w-6 mr-1 dark:text-gray-300 dark:hover:text-white"
               fill={isLiked ? "red" : "none"} // Step 3: Conditionally set SVG fill
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -146,7 +146,7 @@ export default function PostPage() {
         />
       </div>
       <div
-        className="prose max-w-none"
+        className="prose max-w-none dark:text-gray-300"
         dangerouslySetInnerHTML={{ __html: postInfo.content }}
       />
       <CommentSection postId={id} />

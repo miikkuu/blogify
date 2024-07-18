@@ -11,8 +11,8 @@ export default function Post({ _id, title, summary, cover, createdAt, author }) 
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl my-5 h-auto md:h-[350px]">
-      <div className="flex flex-col justify-between h-full">
+<div className="max-w-md mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden md:max-w-2xl my-5 h-auto md:h-[350px]">
+<div className="flex flex-col justify-between h-full">
         <div className="flex-shrink-0">
           <Link to={`/post/${_id}`}>
             <img 
@@ -24,12 +24,12 @@ export default function Post({ _id, title, summary, cover, createdAt, author }) 
           </Link>
         </div>
         <div className="p-6">
-          <Link to={`/post/${_id}`} className="block text-lg leading-tight font-medium text-black hover:underline">{title}</Link>
-          <Link to={`/post/${_id}`} className="mt-2 text-gray-500">{summary}</Link>
+        <Link to={`/post/${_id}`} className="block text-lg leading-tight font-medium text-black dark:text-white hover:underline">{title}</Link>
+        <Link to={`/post/${_id}`} className="mt-2 text-gray-500 dark:text-gray-400">{summary}</Link>
         </div>
         <div className="px-6  -my-2 pb-14">
-          <div className="text-sm font-semibold text-indigo-600">{author.username}</div>
-          <div className="text-sm text-gray-500">{formattedDate}</div>
+        <div className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">{author.username}</div>
+        <div className="text-sm text-gray-500 dark:text-gray-400">{formattedDate}</div>
         </div>
       </div>
     </div>

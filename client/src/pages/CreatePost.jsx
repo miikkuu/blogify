@@ -41,23 +41,23 @@ export default function CreatePost() {
         placeholder="Title"
         value={title}
         onChange={(ev) => setTitle(ev.target.value)}
-        className="w-full p-2 mb-4 border border-gray-300 rounded"
-      />
+        className="w-full p-2 mb-4 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-700 text-black dark:text-white"
+        />
       <input
         type="text"
         placeholder="Summary"
         value={summary}
         onChange={(ev) => setSummary(ev.target.value)}
-        className="w-full p-2 mb-4 border border-gray-300 rounded"
-      />
+        className="w-full p-2 mb-4 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-700 text-black dark:text-white"
+        />
       <input
         type="file"
         onChange={(ev) => setFiles(ev.target.files)}
-        className="w-full p-2 mb-4 border border-gray-300 rounded"
-      />
+        className="w-full p-2 mb-4 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-700 text-black dark:text-white"
+        />
       <Editor value={content} onChange={setContent} />
-      <button className="w-full p-2 mt-4 text-white bg-black rounded hover:bg-gray-800">
-        Create post
+      <button className="w-full p-2 mt-4 bg-black dark:bg-white text-white dark:text-black rounded hover:bg-gray-800 dark:hover:bg-gray-200">
+      Create post
       </button>
     </form>
   );

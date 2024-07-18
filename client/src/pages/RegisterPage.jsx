@@ -48,17 +48,17 @@ export default function RegisterPage() {
         placeholder="Username"
         value={username}
         onChange={ev => setUsername(ev.target.value)}
-        className="w-full p-2 mb-4 border border-gray-300 rounded"
+        className="w-full p-2 mb-4 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-700 text-black dark:text-white"
       />
       <input
         type="password"
         placeholder="Password"
         value={password}
         onChange={ev => setPassword(ev.target.value)}
-        className="w-full p-2 mb-6 border border-gray-300 rounded"
+        className="w-full p-2 mb-4 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-700 text-black dark:text-white"
       />
-      <button className="w-full p-2 bg-black text-white rounded hover:bg-gray-800">
-        Register
+      <button className="w-full p-2 bg-black dark:bg-white text-white dark:text-black rounded hover:bg-gray-800 dark:hover:bg-gray-200">
+      Register
       </button>
     </form>
   );
