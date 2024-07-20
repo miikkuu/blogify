@@ -17,7 +17,7 @@ app.use(cors({ credentials: true, origin: [`${process.env.CORS_DOMAIN_URL}` , 'h
 app.use(express.json());
 app.use(cookieParser());
 app.use(morgan('dev'));
-app.use('/api/uploads', express.static(__dirname + '/uploads'));
+app.use('/api/uploads', express.static(__dirname + '/uploads')); // optional: for experimenting with multer and local /multer
 
 // Routes
 app.use('/api/auth', authRoutes);
