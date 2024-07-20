@@ -5,6 +5,7 @@ const postValidation = (data) => {
     title: Joi.string().required(),
     summary: Joi.string().required(),
     content: Joi.string().required(),
+    file: Joi.any(),
   });
   return schema.validate(data);
 };

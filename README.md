@@ -25,7 +25,8 @@ Blogify is a full-stack blog application with a React frontend and a Node.js bac
 - Node.js
 - Express.js
 - MongoDB for database
-- JWT for authentication
+- JWT for authentication for user sessions
+- Google OAuthentication for social login
 - AWS S3 for image storage
 
 ### DevOps
@@ -106,6 +107,10 @@ AWS_REGION=your_aws_region
 AWS_BUCKET_NAME=your_s3_bucket_name
 VITE_API_BACKEND_URL=http://your_api_url
 CORS_DOMAIN_URL=http://your_frontend_url
+VITE_GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+
 ```
 
 

@@ -3,15 +3,19 @@ import { createContext, useState, useEffect } from "react";
 export const UserContext = createContext({});
 
 export function UserContextProvider({ children }) {
-  // Initialize userInfo from local storage or default to {}
   const [userInfo, setUserInfo] = useState(() => {
     const savedUserInfo = localStorage.getItem("userInfo");
-    return savedUserInfo ? JSON.parse(savedUserInfo) : {};
+    return savedUserInfo ? JSON.parse(savedUserInfo) : null;
   });
 
-  // Save userInfo to local storage whenever it changes
+
+
   useEffect(() => {
-    localStorage.setItem("userInfo", JSON.stringify(userInfo));
+    if (userInfo) {
+      localStorage.setItem("userInfo", JSON.stringify(userInfo));
+    } else {
+      localStorage.removeItem("userInfo");
+    }
   }, [userInfo]);
 
   return (

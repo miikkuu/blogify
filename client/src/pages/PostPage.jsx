@@ -96,7 +96,11 @@ export default function PostPage() {
               hour12: false,
             })}
           </time>
-          <p className="text-gray-700 dark:text-gray-500">by @{postInfo.author.username}</p>
+          <p className="text-gray-700 dark:text-gray-500">by - {" "}
+             <Link className="text-pink-500 hover:text-blue-300" to={`/posts/user/${postInfo.author._id}`}>
+              @{postInfo.author.username.split(" ").length === 3 ? postInfo.author.username.split(" ").slice(0, 2).join(" ") : postInfo.author.username}
+            </Link> 
+          </p>
         </div>
         <div className="flex items-center">
           <button
@@ -140,7 +144,7 @@ export default function PostPage() {
       </div>
       <div className="mb-8">
         <img
-          src={postInfo.cover}
+          src={postInfo.cover? postInfo.cover : "https://via.placeholder.com/400x200?text=Image+Not+Available"}
           alt={postInfo.title}
           className="w-full h-64 object-cover rounded"
         />

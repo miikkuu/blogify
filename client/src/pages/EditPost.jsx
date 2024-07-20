@@ -2,17 +2,19 @@ import { useEffect, useState } from "react";
 import { Navigate, useParams } from "react-router-dom";
 import Editor from "../components/Editor";
 
-export default function EditPost() {
+const API_BACKEND_URL = import.meta.env.VITE_API_BACKEND_URL;
+
+const EditPost = () => {
   const { id } = useParams();
   const [title, setTitle] = useState('');
   const [summary, setSummary] = useState('');
   const [content, setContent] = useState('');
-  const [files, setFiles] = useState('');
+  const [file, setFile] = useState(null);
   const [redirect, setRedirect] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_BACKEND_URL}/posts/${id}`)
+    fetch(`${API_BACKEND_URL}/posts/${id}`)
       .then(response => response.json())
       .then(postInfo => {
         setTitle(postInfo.title);
@@ -22,26 +24,23 @@ export default function EditPost() {
       .catch(err => setError('Failed to load post'));
   }, [id]);
 
-  async function updatePost(ev) {
+  const updatePost = async (ev) => {
     ev.preventDefault();
-    setError('');
-
     const data = new FormData();
     data.set('title', title);
     data.set('summary', summary);
     data.set('content', content);
     data.set('id', id);
-    if (files?.[0]) {
-      data.set('file', files[0]);
+    if (file) {
+      data.set('file', file);
     }
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/posts`, {
+      const response = await fetch(`${API_BACKEND_URL}/posts/${id}`, {
         method: 'PUT',
         body: data,
         credentials: 'include',
       });
-
       if (response.ok) {
         setRedirect(true);
       } else {
@@ -52,7 +51,7 @@ export default function EditPost() {
       console.error('Error updating post:', error);
       setError('An error occurred. Please try again.');
     }
-  }
+  };
 
   if (redirect) {
     return <Navigate to={'/post/' + id} />
@@ -64,21 +63,21 @@ export default function EditPost() {
       {error && <p className="text-red-500 mb-4">{error}</p>}
       <input
         type="title"
-        placeholder={'Title'}
+        placeholder="Title"
         value={title}
-        onChange={ev => setTitle(ev.target.value)}
+        onChange={(ev) => setTitle(ev.target.value)}
         className="w-full p-2 mb-4 border border-gray-300 rounded"
       />
       <input
         type="summary"
-        placeholder={'Summary'}
+        placeholder="Summary"
         value={summary}
-        onChange={ev => setSummary(ev.target.value)}
+        onChange={(ev) => setSummary(ev.target.value)}
         className="w-full p-2 mb-4 border border-gray-300 rounded"
       />
       <input
         type="file"
-        onChange={ev => setFiles(ev.target.files)}
+        onChange={(ev) => setFile(ev.target.files?.[0])}
         className="w-full p-2 mb-4 border border-gray-300 rounded"
       />
       <Editor onChange={setContent} value={content} />
@@ -87,4 +86,6 @@ export default function EditPost() {
       </button>
     </form>
   );
-}
+};
+
+export default EditPost;

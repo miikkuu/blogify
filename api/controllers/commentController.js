@@ -13,7 +13,6 @@ exports.getCommentsForPost = async (req, res) => {
 
 exports.addCommentToPost = async (req, res) => {
   try {
-    console.log('req.user:', req.user);
     const { postId } = req.params;
     const { content } = req.body;
     const { id } = req.user; // Assuming req.user is populated by the auth middleware

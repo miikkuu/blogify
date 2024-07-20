@@ -40,7 +40,6 @@ jobs:
             echo "No images to prune."
           fi
           
-
     - name: Build, tag, and push images to Amazon ECR
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -63,6 +62,7 @@ jobs:
         VITE_API_BACKEND_URL: ${{ secrets.VITE_API_BACKEND_URL }}
       run: |
         cat > docker-compose.yml <<EOL
+        version: '3.8'
         services:
           client:
             image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:client-latest
@@ -72,6 +72,7 @@ jobs:
               - api
             environment:
               - VITE_API_BACKEND_URL=\${VITE_API_BACKEND_URL}
+              - VITE_GOOGLE_CLIENT_ID=\${VITE_GOOGLE_CLIENT_ID}
             env_file:
               - .env
           api:
@@ -92,32 +93,31 @@ jobs:
         EOL
         echo "Updated docker-compose.yml:"
         cat docker-compose.yml
-    
 
-    
-        
+    - name: Generate ECR login command
+      id: ecr-login-command
+      run: |
+          echo "ECR_LOGIN_COMMAND=$(aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }})" >> $GITHUB_ENV
+  
     - name: Deploy to EC2
       env:
-        PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        VITE_API_BACKEND_URL: ${{ secrets.VITE_API_BACKEND_URL }}
+          PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          ECR_LOGIN_COMMAND: ${{ env.ECR_LOGIN_COMMAND }}
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          VITE_API_BACKEND_URL: ${{ secrets.VITE_API_BACKEND_URL }}
       run: |
-        echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
-        scp -i private_key -o StrictHostKeyChecking=no docker-compose.yml $EC2_USER@$EC2_HOST:~/
-        scp -i private_key -o StrictHostKeyChecking=no nginx.conf $EC2_USER@$EC2_HOST:~/
-        ssh -i private_key -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST '
-         
-          # Authenticate with ECR
-          #aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_REGISTRY || true
-
-
-                  
-          docker compose pull
-          docker compose up -d
-          docker system prune -af
-        
-        '
-
+          echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
+          scp -i private_key -o StrictHostKeyChecking=no docker-compose.yml $EC2_USER@$EC2_HOST:~/
+          scp -i private_key -o StrictHostKeyChecking=no nginx.conf $EC2_USER@$EC2_HOST:~/
+          ssh -i private_key -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST '
+            # Execute the ECR login command
+            echo "$ECR_LOGIN_COMMAND" | bash
+  
+            docker compose pull
+            docker compose up -d
+            docker system prune -af
+          '
+  
     - name: Cleanup
       if: always()
       run: rm -f private_key

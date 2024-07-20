@@ -1,6 +1,7 @@
 import { useContext, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { UserContext } from "../contexts/UserContext";
+import { GoogleLoginButton } from "../components/GoogleLoginButton";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -9,6 +10,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const { setUserInfo } = useContext(UserContext);
 
+  
   async function login(ev) {
     ev.preventDefault();
     setError("");
@@ -47,26 +49,29 @@ export default function LoginPage() {
   }
 
   return (
-    <form className="max-w-md mx-auto mt-8" onSubmit={login}>
-      <h1 className="text-3xl font-bold mb-6 text-center">Login</h1>
-      {error && <p className="text-red-500 mb-4">{error}</p>}
-      <input
-        type="text"
-        placeholder="Username"
-        value={username}
-        onChange={(ev) => setUsername(ev.target.value)}
-        className="w-full p-2 mb-4 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-700 text-black dark:text-white"
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(ev) => setPassword(ev.target.value)}
-        className="w-full p-2 mb-4 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-700 text-black dark:text-white"
-      />
-      <button className="w-full p-2 bg-black dark:bg-white text-white dark:text-black rounded hover:bg-gray-800 dark:hover:bg-gray-200">
-        Login
-      </button>
-    </form>
+    <div className="max-w-md mx-auto mt-8">
+      <form  onSubmit={login}>
+        <h1 className="text-3xl font-bold mb-6 text-center">Login</h1>
+        {error && <p className="text-red-500 mb-4">{error}</p>}
+        <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(ev) => setUsername(ev.target.value)}
+          className="w-full p-2 mb-4 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-700 text-black dark:text-white"
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(ev) => setPassword(ev.target.value)}
+          className="w-full p-2 mb-4 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-700 text-black dark:text-white"
+        />
+        <button className="w-full p-2 bg-black dark:bg-white text-white dark:text-black rounded hover:bg-gray-800 dark:hover:bg-gray-200">
+          Login
+        </button>
+      </form>
+      <div className="ml-16 mt-10 "><GoogleLoginButton shape="pill" width="300px" text="signin_with" /></div> 
+      </div>
   );
 }
