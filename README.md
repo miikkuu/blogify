@@ -1,124 +1,155 @@
-# Blogify
+# Blogify📝
 
-Blogify is a full-stack blog application with a React frontend and a Node.js backend. It features user authentication, post creation and management, and image uploads using AWS S3. The application is containerized using Docker , uses Nginx as reverse proxy and deployed on AWS EC2 with CI/CD integration.
+A FullStack Blog application that allows users to create, manage, and share blog posts seamlessly. Now featuring Google OAuth for easy sign-in. ✨
+
+Blogify is not just another blog application. It is a full-fledged platform that allows users to create, manage, and share blog posts with ease. With features like user authentication, Google OAuth, and image uploads, Blogify is the perfect solution for bloggers and content creators. 🚀
+
+## Table of Contents
+
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Getting Started](#getting-started)
+- [Configuration](#configuration)
+- [Deployment](#deployment)
+- [New Features](#new-features)
+- [License](#license)
 
 ## Features
 
-- User registration and authentication using JWT
-- Create, read, update, and delete blog posts
-- Rich text editing for blog posts using React Quill
-- Image upload functionality with AWS S3 integration
-- Commenting system for blog posts
-- Like/unlike functionality for posts
-- Responsive design using Tailwind CSS
+- User Authentication and Authorization
+- Create, Read, Update, and Delete (CRUD) blog posts
+- Markdown support for posts
+- Image uploads for posts
+- Category and Tag management
+- Comment system
+- Responsive design
+- Google OAuth for easy sign-in
 
-## Tech Stack:
+## Tech Stack
 
-### Frontend
-- React
-- React Router for navigation
-- Tailwind CSS for styling and responsive design
-- React Quill for rich text editing
-- Vite as the build tool
-
-### Backend
-- Node.js
-- Express.js
-- MongoDB for database
-- JWT for authentication for user sessions
-- Google OAuthentication for social login
-- AWS S3 for image storage
-
-### DevOps
-- Docker for containerization
-- Nginx as a reverse proxy
-- AWS EC2 for hosting
-- GitHub Actions for CI/CD
-
-## Project Structure
-
-The project is divided into two main directories:
-
-- `client/`: Contains the React frontend code
-- `api/`: Contains the Node.js backend code
-
-Additional files:
-- `docker-compose.yml`: Defines the multi-container Docker setup
-- `nginx.conf`: Configuration file for Nginx reverse proxy
-- `.env.example`: Example environment variables file
+- **Frontend**: React, Vite , Quill
+- **Backend**: Node.js, Express , Multer , S3
+- **Database**: MongoDB
+- **Authentication**: JWT, Google OAuth
+- **Containerization**: Docker , Docker-Compose
+- **Cloud**: AWS (EC2,S3,ECR)
 
 ## Getting Started
 
-1. Clone the repository
-2. Copy `.env.example` to `.env` and fill in your actual values
-3. Install dependencies for both frontend and backend (using yarn):
-   ```
-   cd client && yarn install
-   cd ../api && yarn install
-   ```
-4. Start the development servers:
-   - For frontend: `cd client && yarn start`
-   - For backend: `cd api && yarn dev`
+### Prerequisites
 
-The frontend development server will start using Vite, and the backend will use Nodemon for auto-reloading during development.
+- Node.js (>=18.x)
+- Docker
+- Docker-Compose
+- MongoDB Cluster (for local development)
+- Google OAuth Client ID and Secret (optional)
+- AWS Account (for deployment)
+- AWS CLI     (for deployment)
 
-## Docker Compose 
+### Installation
 
-If you prefer using Docker for development recommended, you just need to use following command to start the containers:
+1. Clone the repository:
+    ```bash
+    git clone https://github.com/your-username/blogify.git
+    cd blogify
+    ```
 
-```
-docker-compose up -d
-```
+2. Install dependencies:
+    ```bash
+    cd api
+    yarn install
+    cd ../client
+    yarn install
+    ```
 
-This will start the frontend and backend containers in detached mode.
+3. Create a `.env` file in both the `api` and `client` directories and add the necessary environment variables. Refer to `.env.example` for required variables in both directories.
 
-NOTE: make sure you configured .env in root directory before starting.
+### Running Locally
 
+1. Start the backend server:
+    ```bash
+    cd api
+    yarn start
+    ```
 
-## Building for Production
+2. Start the frontend development server:
+    ```bash
+    cd client
+    yarn start
+    ```
 
-To build the frontend for production:
+3. Visit `http://localhost:5173` in your browser.
 
-```
-cd client && yarn build
-```
+## Configuration
 
-This will create a production-ready build in the `dist` directory.
+### Environment Variables
+
+- **API**
+  - `MONGODB_URI`: MongoDB connection string
+  - `JWT_SECRET`: Secret key for JWT
+  - `GOOGLE_CLIENT_ID`: Google OAuth client ID
+  - `GOOGLE_CLIENT_SECRET`: Google OAuth client secret
+
+- **Client**
+  - `VITE_API_BACKEND_URL`: Backend API URL (e.g., `http://localhost:4000`)
+  - `VITE_GOOGLE_CLIENT_ID`: Google OAuth client ID (optional)
+
+### Google OAuth Setup
+
+1. Create a project in the [Google Developers Console](https://console.developers.google.com/).
+2. Configure OAuth consent screen and credentials.
+3. Get your `Client ID` and `Client Secret`.
 
 ## Deployment
 
-The application is set up for deployment on AWS EC2 using Docker and Nginx. The CI/CD pipeline is configured using GitHub Actions.
+1. Build Docker images and push to Amazon ECR:
+    ```bash
+    docker build -t <your-repo-name>:api .
+    docker build -t <your-repo-name>:client .
+    docker push <your-repo-name>:api
+    docker push <your-repo-name>:client
+    ```
 
-1. Ensure your AWS EC2 instance is set up and running
-2. Configure your GitHub repository with the necessary AWS credentials as secrets
-3. Push to the main branch to trigger the CI/CD pipeline
+2. Use the provided `deploy.yml` for GitHub Actions to automate deployment to AWS EC2.
 
-## Environment Variables
+## New Features
 
-Make sure to set the following environment variables:
+### Google OAuth Integration
 
-```
-JWT_SECRET=your_jwt_secret
-PORT=4000
-MONGO_URI=your_mongodb_connection_string
-AWS_ACCESS_KEY_ID=your_aws_access_key
-AWS_SECRET_ACCESS_KEY=your_aws_secret_key
-AWS_REGION=your_aws_region
-AWS_BUCKET_NAME=your_s3_bucket_name
-VITE_API_BACKEND_URL=http://your_api_url
-CORS_DOMAIN_URL=http://your_frontend_url
-VITE_GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-
-```
+- Users can now sign in using their Google account.
+- Simplified sign-up and sign-in process.
 
 
-## Contributing
+## Contribution Guidelines
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+We welcome and encourage contributions to this project! If you would like to contribute, please follow these steps:
+
+1. Create a new branch from the `main` branch:
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+
+2. Make your desired changes and commit them:
+   ```bash
+   git add .
+   git commit -m "Add your commit message here"
+   ```
+
+3. Push your branch to the remote repository:
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+
+4. Open a pull request on GitHub and provide a clear description of your changes.
+
+5. Wait for the project maintainers to review your pull request. Your contribution is greatly appreciated!
+
+Thank you for your interest in contributing to this project!
+Hit the ⭐️ button if you found this project interesting or helpful!
+
+
+
 
 ## License
 
-This project is open source and available under the [MIT License](LICENSE).
-
+This project is licensed under the MIT.
