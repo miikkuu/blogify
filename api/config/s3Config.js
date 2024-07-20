@@ -19,25 +19,29 @@ const upload = multer({
       cb(null, { fieldName: file.fieldname });
     },
     key: function (req, file, cb) {
-        console.log("from uploads s3" ,file.originalname.replace(/\s/g, ''));
-      cb(null, file.originalname.replace(/\s/g, ''));
+      if (file) {
+        console.log("from uploads s3", file.originalname.replace(/\s/g, ''));
+        cb(null, file.originalname.replace(/\s/g, ''));
+      } else {
+        cb(null, null); // No file
+      }
     }
   })
 });
 
 const getPresignedUrl = async (fileKey) => {
-    const command = new GetObjectCommand({
-      Bucket: process.env.AWS_BUCKET_NAME,
-      Key: fileKey,
-    });
+  const command = new GetObjectCommand({
+    Bucket: process.env.AWS_BUCKET_NAME,
+    Key: fileKey,
+  });
 
-    try {
-        // URL will be valid for 1 hour
-        return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
-    } catch (error) {
-        console.error("Error generating presigned URL:", error);
-        throw error; // Rethrow the error for further handling if necessary
-    }
+  try {
+    // URL will be valid for 1 hour
+    return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+  } catch (error) {
+    console.error("Error generating presigned URL:", error);
+    throw error; // Rethrow the error for further handling if necessary
+  }
 };
 
 module.exports = { s3Client, upload, getPresignedUrl };

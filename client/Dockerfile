@@ -1,6 +1,8 @@
 # blogify/client/Dockerfile
 FROM node:18-alpine AS build
 ARG VITE_API_BACKEND_URL
+ARG VITE_GOOGLE_CLIENT_ID
+
 
 WORKDIR /app
 COPY package*.json ./
@@ -9,6 +11,7 @@ COPY . .
 
 # Pass build arguments as environment variables for build time
 ENV VITE_API_BACKEND_URL=${VITE_API_BACKEND_URL}
+ENV VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
 
 RUN yarn run build
 

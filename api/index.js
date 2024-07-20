@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 const authRoutes = require('./routes/authRoutes');
 const postRoutes = require('./routes/postRoutes');
+const gAuthRoutes = require('./routes/gAuthRoutes');
 const errorMiddleware = require('./middlewares/errorMiddleware');
 const connectDB = require('./config/db'); // connectDB function
 const app = express();
@@ -21,6 +22,7 @@ app.use('/api/uploads', express.static(__dirname + '/uploads'));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
+app.use('/api/gauth', gAuthRoutes); 
 app.delete('/api/comments/:commentId', require('./controllers/commentController').deleteComment);
 
 

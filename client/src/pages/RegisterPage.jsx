@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
+import {GoogleLoginButton} from "../components/GoogleLoginButton";
 
 export default function RegisterPage() {
   const [username, setUsername] = useState('');
@@ -40,6 +41,7 @@ export default function RegisterPage() {
   }
 
   return (
+    <div className="max-w-md mx-auto mt-8">
     <form className="max-w-md mx-auto mt-8" onSubmit={register}>
       <h1 className="text-3xl font-bold mb-6 text-center">Register</h1>
       {error && <p className="text-red-500 mb-4">{error}</p>}
@@ -61,5 +63,7 @@ export default function RegisterPage() {
       Register
       </button>
     </form>
+        <div className="ml-16 mt-10 "><GoogleLoginButton shape="pill" width="300px" text="signin_with" /></div> 
+</div>
   );
 }

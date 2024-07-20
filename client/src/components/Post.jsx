@@ -17,7 +17,7 @@ export default function Post({ _id, title, summary, cover, createdAt, author }) 
           <Link to={`/post/${_id}`}>
             <img 
               className="w-full object-cover h-48 md:h-[200px]" 
-              src={cover} 
+              src={cover } 
               alt={title}
               onError={handleImageError}
             />

@@ -9,7 +9,7 @@ export default function Layout() {
         <main className="flex-grow container mx-auto px-4 py-8">
           <Outlet />
         </main>
-        <footer className="bg-gray-100 dark:bg-gray-800 py-4 text-center text-gray-600 dark:text-gray-400">
+        <footer className="bg-gray-200  dark:bg-gray-800 py-4 text-center text-gray-600 dark:text-gray-400">
           © 2024 Created With Love by{" "}
           <a
             href="https://github.com/miikkuu"
