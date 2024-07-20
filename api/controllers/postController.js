@@ -9,7 +9,6 @@ const { getPresignedUrl } = require("../config/s3Config.js");
 const secret = process.env.JWT_SECRET;
 
 const createPost = async (req, res, next) => {
-  console.log("req", req.body);
   const { error } = postValidation(req.body);
   if (error) return res.status(400).json(error.details);
   const { token } = req.cookies;
@@ -35,12 +34,13 @@ const createPost = async (req, res, next) => {
 
 const updatePost = async (req, res, next) => {
   const { token } = req.cookies;
+  const { postId } = req.params;
   jwt.verify(token, secret, {}, async (err, info) => {
     if (err) return next(err);
 
     try {
-      const { id, title, summary, content } = req.body;
-      const postDoc = await Post.findById(id);
+      const { title, summary, content } = req.body;
+      const postDoc = await Post.findById(postId);
       if (!postDoc.author.equals(info.id)) {
         return res.status(400).json("You are not the author");
       }
@@ -49,7 +49,8 @@ const updatePost = async (req, res, next) => {
       postDoc.content = content;
       if (req.file) {
         // Delete old file from S3
-        if (postDoc.cover) {
+        if (postDoc.cover != "https://via.placeholder.com/400x200?text=Image+Not+Available") {
+          console.log("Deleting old image from S3");
           const oldKey = postDoc.cover;
           const deleteCommand = new DeleteObjectCommand({
             Bucket: process.env.AWS_BUCKET_NAME,
@@ -57,7 +58,12 @@ const updatePost = async (req, res, next) => {
           });
           await s3Client.send(deleteCommand);
         }
-        postDoc.cover = req.file.location; // New S3 file URL
+
+        if(postDoc.cover != req.file.location) {
+          console.log("Updating new image");
+          postDoc.cover = req.file.location  // update if new image recieved
+          }
+      
       }
       await postDoc.save();
       res.json(postDoc);
@@ -238,6 +244,8 @@ const deletePost = async (req, res, next) => {
           Key: coverKey,
         });
         await s3Client.send(deleteCommand);
+        console.log("Deleted old image from S3");
+
       }
 
       //Delete Comments

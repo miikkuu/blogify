@@ -59,7 +59,7 @@ export default function CommentSection({ postId }) {
       {comments.map((comment) => (
         <div
           key={comment._id}
-          className="mb-4 p-4 bg-gray-300 dark:bg-gray-800 rounded"
+          className="mb-4 p-4 bg-gray-200 dark:bg-gray-800 rounded"
         >
           <p className="font-semibold text-gray-900 dark:text-gray-100">
             {comment.author.username}

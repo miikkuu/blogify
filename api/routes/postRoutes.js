@@ -5,7 +5,7 @@ const { upload } = require('../config/s3Config');
 const router = express.Router();
 
 router.post('/', authMiddleware, upload.single('file'), createPost);
-router.put('/', authMiddleware, upload.single('file'), updatePost);
+router.put('/:postId', authMiddleware,upload.single('file'), updatePost);
 router.get('/', getPosts);
 router.get('/user/:userId', getPostsByUser);
 router.get('/:id', getPostById);
