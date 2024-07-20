@@ -34,7 +34,7 @@ jobs:
       run: |
          retain=2
          repo=${{ secrets.ECR_REPOSITORY }}
-         images=$(aws ecr describe-images --repository-name $repo --query 'sort_by(imageDetails,& imagePushedAt)[:-${retain}].imageDigest' --output text)
+         images=$(aws ecr describe-images --repository-name $repo --query 'imageDetails[*].{imagePushedAt:imagePushedAt,imageDigest:imageDigest}' --output json | jq -r 'sort_by(.imagePushedAt) | reverse | .['${retain}':] | .[].imageDigest')
          if [ -n "$images" ]; then
             echo "Deleting old images: $images"
             for digest in $images; do
