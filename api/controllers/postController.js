@@ -9,7 +9,6 @@ const { getPresignedUrl } = require("../config/s3Config.js");
 const secret = process.env.JWT_SECRET;
 
 const createPost = async (req, res, next) => {
-  console.log("req", req.body);
   const { error } = postValidation(req.body);
   if (error) return res.status(400).json(error.details);
   const { token } = req.cookies;

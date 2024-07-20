@@ -14,14 +14,12 @@ const CreatePost = () => {
 
   const createNewPost = async (ev) => {
     ev.preventDefault();
-    console.log('Content before submission:', content); // Log the content before submission
 
     const data = new FormData();
     data.append('title', title);
     data.append('summary', summary);
     data.append('content', content); // Ensure content is set
     data.append('file', file);
-    console.log('Data before submission:', content ,title); // Log the data before submission
 
     try {
       const response = await fetch(`${API_BACKEND_URL}/posts`, {
