@@ -10,7 +10,7 @@ export default function Layout() {
           <Outlet />
         </main>
         <footer className="bg-gray-200  dark:bg-gray-800 py-4 text-center text-gray-600 dark:text-gray-400">
-          © 2024 Created With Love by{" "}
+          ©2024 Created With Love by{" "}
           <a
             href="https://github.com/miikkuu"
             className="text-pink-600 hover:text-purple-800"
