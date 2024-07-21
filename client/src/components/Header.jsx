@@ -21,7 +21,7 @@ export default function Header() {
   return (
     <header className="bg-white  dark:bg-gray-900 shadow-md dark:shadow-2xl">
       <div className="max-w-6xl mx-auto sm:px-5  py-5 flex justify-between items-center">
-        <div className="flex mb-2 sm:-mb-1 sm:text-nowrap justify-between gap-2 ">
+        <div className="flex ml-2 mb-2 sm:-mb-1 sm:text-nowrap justify-between gap-2 ">
         <Link
           to="/"
           className="text-gray-900 mx-1  text-[25px] sm:text-[30px] sm:text-nowrap border-[1px] dark:text-white text-3xl hover:text-gray-900 dark:hover:text-gray-200 rounded-xl px-2 p-1 font-medium transition-transform duration-500 ease-in-out transform hover:scale-110 shadow-md"

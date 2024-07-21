@@ -28,11 +28,11 @@ Blogify is not just another blog application. It is a full-fledged platform that
 ## Tech Stack
 
 - **Frontend**: React, Vite , Quill
-- **Backend**: Node.js, Express , Multer , S3
-- **Database**: MongoDB
+- **Backend**: Node.js, Express, Multer, S3, Nginx
+- **Database**: MongoDB 
 - **Authentication**: JWT, Google OAuth
 - **Containerization**: Docker , Docker-Compose
-- **Cloud**: AWS (EC2,S3,ECR)
+- **Cloud**: AWS (EC2,S3,ECR) 
 
 ## Getting Started
 
