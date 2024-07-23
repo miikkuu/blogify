@@ -1,38 +1,41 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
-import {GoogleLoginButton} from "../components/GoogleLoginButton";
+import { GoogleLoginButton } from "../components/GoogleLoginButton";
 
 export default function RegisterPage() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [redirect, setRedirect] = useState(false);
 
   async function register(ev) {
     ev.preventDefault();
-    setError('');
+    setError("");
 
     if (!username || !password) {
-      setError('Please fill in all fields');
+      setError("Please fill in all fields");
       return;
     }
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/auth/register`, {
-        method: 'POST',
-        body: JSON.stringify({ username, password }),
-        headers: { 'Content-Type': 'application/json' },
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BACKEND_URL}/auth/register`,
+        {
+          method: "POST",
+          body: JSON.stringify({ username, password }),
+          headers: { "Content-Type": "application/json" },
+        }
+      );
 
       if (response.status === 200) {
         setRedirect(true);
       } else {
         const data = await response.json();
-        setError(data.message || 'Registration failed');
+        setError(data.message || "Registration failed");
       }
     } catch (error) {
-      console.error('Registration error:', error);
-      setError('An error occurred. Please try again.');
+      console.error("Registration error:", error);
+      setError("An error occurred. Please try again.");
     }
   }
 
@@ -41,29 +44,31 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="max-w-md mx-auto mt-8">
-    <form className="max-w-md mx-auto mt-8" onSubmit={register}>
-      <h1 className="text-3xl font-bold mb-6 text-center">Register</h1>
-      {error && <p className="text-red-500 mb-4">{error}</p>}
-      <input
-        type="text"
-        placeholder="Username"
-        value={username}
-        onChange={ev => setUsername(ev.target.value)}
-        className="w-full p-2 mb-4 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-700 text-black dark:text-white"
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={ev => setPassword(ev.target.value)}
-        className="w-full p-2 mb-4 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-700 text-black dark:text-white"
-      />
-      <button className="w-full p-2 bg-black dark:bg-white text-white dark:text-black rounded hover:bg-gray-800 dark:hover:bg-gray-200">
-      Register
-      </button>
-    </form>
-        <div className="ml-16 mt-10 "><GoogleLoginButton shape="pill" width="300px" text="signin_with" /></div> 
-</div>
+    <div className="max-w-md mx-auto mt-8 flex flex-col justify-center items-center">
+      <form className="max-w-md mx-auto mt-8" onSubmit={register}>
+        <h1 className="text-3xl font-bold mb-6 text-center">Register</h1>
+        {error && <p className="text-red-500 mb-4">{error}</p>}
+        <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(ev) => setUsername(ev.target.value)}
+          className="w-full p-2 mb-4 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-700 text-black dark:text-white"
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(ev) => setPassword(ev.target.value)}
+          className="w-full p-2 mb-4 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-700 text-black dark:text-white"
+        />
+        <button className="w-full p-2 bg-black dark:bg-white text-white dark:text-black rounded hover:bg-gray-800 dark:hover:bg-gray-200">
+          Register
+        </button>
+      </form>
+      <div className="mt-10 ">
+        <GoogleLoginButton shape="pill" width="300px" text="signin_with" />
+      </div>
+    </div>
   );
 }
