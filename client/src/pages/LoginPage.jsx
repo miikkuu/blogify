@@ -10,7 +10,6 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const { setUserInfo } = useContext(UserContext);
 
-  
   async function login(ev) {
     ev.preventDefault();
     setError("");
@@ -49,8 +48,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="max-w-md mx-auto mt-8">
-      <form  onSubmit={login}>
+    <div className="max-w-md mx-auto mt-8 flex flex-col justify-center items-center">
+      <form onSubmit={login}>
         <h1 className="text-3xl font-bold mb-6 text-center">Login</h1>
         {error && <p className="text-red-500 mb-4">{error}</p>}
         <input
@@ -71,7 +70,9 @@ export default function LoginPage() {
           Login
         </button>
       </form>
-      <div className="ml-16 mt-10 "><GoogleLoginButton shape="pill" width="300px" text="signin_with" /></div> 
+      <div className="mt-10 ">
+        <GoogleLoginButton shape="pill" width="300px" text="signin_with" />
       </div>
+    </div>
   );
 }
