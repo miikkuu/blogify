@@ -10,7 +10,6 @@ export default function PostPage() {
   const { userInfo } = useContext(UserContext);
   const { id } = useParams();
   const navigate = useNavigate();
-
   async function fetchPostInfo() {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/posts/${id}`);
@@ -27,7 +26,7 @@ export default function PostPage() {
   useEffect(() => {
     fetchPostInfo();
   }, [id]);
-  
+
   async function handleLike() {
     const status = isLiked ? `unlike` : `like`;
     try {
@@ -102,7 +101,8 @@ export default function PostPage() {
             </Link> 
           </p>
         </div>
-        <div className="flex items-center">
+        <div className="flex items-center">       
+
           <button
             onClick={handleLike}
             className="flex items-center mr-4 text-gray-600 dark:text-gray-300 hover:text-black"

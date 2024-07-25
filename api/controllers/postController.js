@@ -21,7 +21,7 @@ const createPost = async (req, res, next) => {
         summary,
         content,
         cover: req.file
-          ? req.file.location   // S3 file URL
+          ? req.file.location // S3 file URL
           : "https://via.placeholder.com/400x200?text=Image+Not+Available",
         author: info.id,
       });
@@ -49,7 +49,10 @@ const updatePost = async (req, res, next) => {
       postDoc.content = content;
       if (req.file) {
         // Delete old file from S3
-        if (postDoc.cover != "https://via.placeholder.com/400x200?text=Image+Not+Available") {
+        if (
+          postDoc.cover !=
+          "https://via.placeholder.com/400x200?text=Image+Not+Available"
+        ) {
           console.log("Deleting old image from S3");
           const oldKey = postDoc.cover;
           const deleteCommand = new DeleteObjectCommand({
@@ -59,11 +62,10 @@ const updatePost = async (req, res, next) => {
           await s3Client.send(deleteCommand);
         }
 
-        if(postDoc.cover != req.file.location) {
+        if (postDoc.cover != req.file.location) {
           console.log("Updating new image");
-          postDoc.cover = req.file.location  // update if new image recieved
-          }
-      
+          postDoc.cover = req.file.location; // update if new image recieved
+        }
       }
       await postDoc.save();
       res.json(postDoc);
@@ -93,16 +95,13 @@ const getPostsByUser = async (req, res, next) => {
       posts.map(async (post) => {
         try {
           let presignedUrl = null;
-          if (
-            post.cover !=
-            "https://via.placeholder.com/400x200?text=Image+Not+Available"
-          ) {
+       
             const coverKey = new URL(post.cover).pathname.substring(1); // Remove the leading slash
             presignedUrl = await getPresignedUrl(coverKey);
-          }
+          
           return {
             ...post.toObject(),
-            cover: presignedUrl ? presignedUrl : post.cover, // Fallback to original cover if presigned URL fails
+            cover: presignedUrl ? presignedUrl : "https://via.placeholder.com/400x200?text=Image+Not+Available", // Fallback to original cover if presigned URL fails
           };
         } catch (error) {
           console.error(
@@ -138,16 +137,13 @@ const getPosts = async (req, res, next) => {
       posts.map(async (post) => {
         try {
           let presignedUrl = null;
-          if (
-            post.cover !=
-            "https://via.placeholder.com/400x200?text=Image+Not+Available"
-          ) {
-            const coverKey = new URL(post.cover).pathname.substring(1); // Remove the leading slash
-            presignedUrl = await getPresignedUrl(coverKey);
-          }
+
+          const coverKey = new URL(post.cover).pathname.substring(1); // Remove the leading slash
+          presignedUrl = await getPresignedUrl(coverKey);
+
           return {
             ...post.toObject(),
-            cover: presignedUrl ? presignedUrl : post.cover, // Fallback to original cover if presigned URL fails
+            cover: presignedUrl ? presignedUrl : "https://via.placeholder.com/400x200?text=Image+Not+Available", // Fallback to original cover if presigned URL fails
           };
         } catch (error) {
           console.error(
@@ -179,16 +175,12 @@ const getPostById = async (req, res, next) => {
     // Generate pre-signed URL for the post's cover image
     // Extract the key from the full URL
     let presignedUrl = null;
-    if (
-      postDoc.cover !=
-      "https://via.placeholder.com/400x200?text=Image+Not+Available"
-    ) {
-      const coverKey = new URL(postDoc.cover).pathname.substring(1); // Remove the leading slash
+      const coverKey = new URL(postDoc.cover).pathname.substring(1);
       presignedUrl = await getPresignedUrl(coverKey);
-    }
+    
     const postWithPresignedUrl = {
       ...postDoc.toObject(),
-      cover: presignedUrl ? presignedUrl : postDoc.cover, // Fallback to original cover if presigned URL fails
+      cover: presignedUrl ? presignedUrl : "https://via.placeholder.com/400x200?text=Image+Not+Available", // Fallback to original cover if presigned URL fails
     };
 
     res.json(postWithPresignedUrl);
@@ -234,9 +226,9 @@ const deletePost = async (req, res, next) => {
 
       // Delete the image from S3 if it exists
       if (
-        postDoc.cover &&
         postDoc.cover !==
           "https://via.placeholder.com/400x200?text=Image+Not+Available"
+          && process.env.AWS_BUCKET_NAME
       ) {
         const coverKey = postDoc.cover; // Extract the key from the URL
         const deleteCommand = new DeleteObjectCommand({
@@ -245,7 +237,6 @@ const deletePost = async (req, res, next) => {
         });
         await s3Client.send(deleteCommand);
         console.log("Deleted old image from S3");
-
       }
 
       //Delete Comments

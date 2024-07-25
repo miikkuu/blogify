@@ -10,8 +10,9 @@ const s3Client = new S3Client({
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
 });
-
-const upload = multer({
+let upload;
+if(process.env.AWS_BUCKET_NAME){
+ upload = multer({
   storage: multerS3({
     s3: s3Client,
     bucket: process.env.AWS_BUCKET_NAME,
@@ -28,8 +29,25 @@ const upload = multer({
     }
   })
 });
-
+}
+else{
+   upload = multer({
+    storage: multer.diskStorage({
+      destination: function (req, file, cb) {
+        cb(null, 'uploads/')
+      },
+      filename: function (req, file, cb) {
+        cb(null, file.originalname)
+      }
+    })
+  });
+}
 const getPresignedUrl = async (fileKey) => {
+  if(!process.env.AWS_BUCKET_NAME || !process.env.AWS_REGION || fileKey === "400x200" )
+    return  null;
+
+  console.log("Generating presigned URL for", fileKey);
+  
   const command = new GetObjectCommand({
     Bucket: process.env.AWS_BUCKET_NAME,
     Key: fileKey,
@@ -38,6 +56,7 @@ const getPresignedUrl = async (fileKey) => {
   try {
     // URL will be valid for 1 hour
     return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+
   } catch (error) {
     console.error("Error generating presigned URL:", error);
     throw error; // Rethrow the error for further handling if necessary
