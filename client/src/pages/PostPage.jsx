@@ -71,7 +71,11 @@ export default function PostPage() {
   }
 
   if (!postInfo) {
-    return <div className="text-center mt-8">Loading...</div>;
+    return (
+      <div className="text-center mt-8 text-3xl font-bold italic ">
+        Loading...
+      </div>
+    );
   }
 
   return (
@@ -150,7 +154,7 @@ export default function PostPage() {
         />
       </div>
       <div
-        className="prose max-w-none dark:text-gray-300"
+        className=" max-w-none "
         dangerouslySetInnerHTML={{ __html: postInfo.content }}
       />
       <CommentSection postId={id} />

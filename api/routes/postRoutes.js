@@ -1,11 +1,12 @@
 const express = require('express');
-const { createPost, updatePost, getPosts, getPostsByUser, getPostById, updateLikeStatus } = require('../controllers/postController');
+const { createPost, updatePost, getPosts, getPostsByUser, getPostById, updateLikeStatus ,searchPosts} = require('../controllers/postController');
 const authMiddleware = require('../middlewares/authMiddleware');
 const { upload } = require('../config/s3Config');
 const router = express.Router();
 
 router.post('/', authMiddleware, upload.single('file'), createPost);
 router.put('/:postId', authMiddleware,upload.single('file'), updatePost);
+router.get('/search', searchPosts);
 router.get('/', getPosts);
 router.get('/user/:userId', getPostsByUser);
 router.get('/:id', getPostById);

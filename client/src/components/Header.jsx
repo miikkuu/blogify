@@ -18,28 +18,31 @@ export default function Header() {
     googleLogout();
   }
 
+
+
   return (
     <header className="bg-white  dark:bg-gray-900 shadow-md dark:shadow-2xl">
       <div className="max-w-6xl mx-auto sm:px-5  py-5 flex justify-between items-center">
         <div className="flex ml-2 mb-2 sm:-mb-1 sm:text-nowrap justify-between gap-2 ">
-        <Link
-          to="/"
-          className="text-gray-900 mx-1  text-[25px] sm:text-[30px] sm:text-nowrap border-[1px] dark:text-white text-3xl hover:text-gray-900 dark:hover:text-gray-200 rounded-xl px-2 p-1 font-medium transition-transform duration-500 ease-in-out transform hover:scale-110 shadow-md"
-        >
-          Blogify
-        </Link>
-        {username && (
           <Link
-            to={`/posts/user/${id}`}
-            className="lg:mr-[500px] px-2  md:text-nowrap   p-1  mt-3 sm:mt-2 border-[1px] text-sm sm:text-base sm:p-2  text-center text-base text-gray-900 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white rounded-xl font-medium transition-transform duration-500 ease-in-out transform hover:scale-110 shadow-md"
-
+            to="/"
+            className="text-gray-900 mx-1  text-[25px] sm:text-[30px] sm:text-nowrap border-[1px] dark:text-white text-3xl hover:text-gray-900 dark:hover:text-gray-200 rounded-xl px-2 p-1 font-medium transition-transform duration-500 ease-in-out transform hover:scale-110 shadow-md"
           >
-            {`${username.split(" ")[0]}'s`} Posts
+            Blogify
           </Link>
-        )}
+          {username && (
+            <Link
+              to={`/posts/user/${id}`}
+              className="lg:mr-[500px] px-2  md:text-nowrap   p-1  mt-3 sm:mt-2 border-[1px] text-sm sm:text-base sm:p-2  text-center text-base text-gray-900 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white rounded-xl font-medium transition-transform duration-500 ease-in-out transform hover:scale-110 shadow-md"
+            >
+              {`${username.split(" ")[0]}'s`} Posts
+            </Link>
+          )}
         </div>
         <nav className="flex sm:text-nowrap    mx-2 sm:mx-2 gap-2 justify-center items-center">
-         <div className="-mr-2 sm:-mr-3 mt-1 sm:mt-0"><DarkModeToggle /></div> 
+          <div className="-mr-2 sm:-mr-3 mt-1 sm:mt-0">
+            <DarkModeToggle />
+          </div>
           {userInfo ? (
             <>
               <Link
