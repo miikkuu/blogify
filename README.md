@@ -20,6 +20,7 @@ Blogify is not just another blog application. It is a full-fledged platform that
 - Create, Read, Update, and Delete (CRUD) blog posts
 - Markdown support for posts
 - Image uploads for posts
+- Semantic Fuzzy Search
 - Category and Tag management
 - Comment system
 - Responsive design
