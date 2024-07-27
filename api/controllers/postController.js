@@ -252,6 +252,115 @@ const deletePost = async (req, res, next) => {
   });
 };
 
+const searchPosts = async (req, res) => {
+  const { search } = req.query;
+
+  try {
+    let results;
+    if (!search) {
+      // If no search query is provided, return all posts
+       results = await Post.find()
+      .populate("author", ["username"])
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .exec();
+
+    } else {
+      // Perform search using MongoDB Atlas Search
+      results = await Post.aggregate([
+        {
+          $search: {
+            index: 'default', // Replace with your search index name if different
+            compound: {
+              should: [
+                {
+                  text: {
+                    query: search,
+                    path: ['title', 'summary', 'content'],
+                    fuzzy: {
+                      maxEdits: 2,
+                    }
+                  }
+                },
+                {
+                  autocomplete: {
+                    query: search,
+                    path: 'title',
+                    fuzzy: {
+                      maxEdits: 2,
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          $lookup: {
+            from: 'users', // The collection to join
+            localField: 'author', // Field from the Post collection
+            foreignField: '_id', // Field from the User collection
+            as: 'author' // Alias for the joined collection
+          }
+        },
+        {
+          $unwind: '$author' // Unwind the joined collection
+        },
+        {
+          $project: {
+            'author.password': 0, // Exclude the password field if it exists
+            'author.email': 0, // Exclude the email field if it exists
+            'author._id': 0, // Exclude the _id field if it exists
+            'author.__v': 0, // Exclude the __v field if it exists
+            'author.createdAt': 0, // Exclude the createdAt field if it exists
+            'author.updatedAt': 0, // Exclude the updatedAt field if it exists
+            // Include other fields as needed
+          }
+        },
+        {
+          $sort: { createdAt: -1 }
+        },
+        {
+          $limit: 10 // Limit the number of results
+        }
+      ]);
+      
+    }
+  
+   // Convert results to plain JavaScript objects if needed
+   const plainResults = results.map(post => JSON.parse(JSON.stringify(post)));
+
+   // Example of generating presigned URLs (if needed)
+   const postsWithPresignedUrls = await Promise.all(
+    plainResults.map(async (post) => {
+      try {
+        let presignedUrl = null;
+
+        const coverKey = new URL(post.cover).pathname.substring(1); // Remove the leading slash
+        presignedUrl = await getPresignedUrl(coverKey);
+
+        return {
+          ...post,
+          cover: presignedUrl ? presignedUrl : "https://via.placeholder.com/400x200?text=Image+Not+Available", // Fallback to original cover if presigned URL fails
+        };
+      } catch (error) {
+        console.error(
+          "Error generating presigned URL for post:",
+          post.id,
+          error
+        );
+        return post; // Fallback to the original post object on error
+      }
+    })
+  );
+  console.log('Posts with presigned URLs:', postsWithPresignedUrls.length);
+  res.json(postsWithPresignedUrls);
+ } catch (error) {
+   console.error('Error searching posts:', error);
+   res.status(500).json({ error: 'Internal server error' });
+ }
+};
+
 module.exports = {
   createPost,
   updatePost,
@@ -260,4 +369,5 @@ module.exports = {
   getPostsByUser,
   getPostById,
   updateLikeStatus,
+  searchPosts
 };
