@@ -62,7 +62,7 @@ export default function CommentSection({ postId }) {
           className="mb-4 p-4 bg-gray-200 dark:bg-gray-800 rounded"
         >
           <p className="font-semibold text-gray-900 dark:text-gray-100">
-            {comment.author.username}
+          {comment.author.username.split(" ").length === 3 ? comment.author.username.split(" ").slice(0, 2).join(" ") : comment.author.username}
           </p>
           <p className="text-gray-800 dark:text-gray-300">{comment.content}</p>
           <time className="text-sm text-gray-500 dark:text-gray-400">
