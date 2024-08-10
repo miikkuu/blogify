@@ -14,6 +14,5 @@ router.get('/:postId/comments', require('../controllers/commentController').getC
 router.post('/:postId/comments', authMiddleware, require('../controllers/commentController').addCommentToPost);
 router.post('/:postId/likestatus', updateLikeStatus);
 router.delete('/:postId', authMiddleware, require('../controllers/postController').deletePost);
-router.delete('/comments', authMiddleware, require('../controllers/postController').deleteComment);
 
 module.exports = router;

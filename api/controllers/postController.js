@@ -207,7 +207,6 @@ const updateLikeStatus = async (req, res, next) => {
     next(e);
   }
 };
-
 const deletePost = async (req, res, next) => {
   const { postId } = req.params;
   const { token } = req.cookies;
@@ -362,41 +361,6 @@ const searchPosts = async (req, res) => {
  }
 };
 
-const deleteComment = async (req, res, next) => {
-  const {_id} = req.query;
-  const { token } = req.cookies;
-
-  if (!token) {
-    return res.status(401).json({ message: "Authentication required" });
-  }
-
-  jwt.verify(token, secret, {}, async (err, info) => {
-    if (err) return next(err);
-
-    try {
-      //find the comment to be deleted
-      const commentDoc = await Comment.findOne({_id});
-      if (!commentDoc) {
-        return res.status(404).json({ message: "Comment not found" });
-      }
-
-      //check if the request is from the owner
-      if (!commentDoc.author.equals(info.id)) {
-        return res
-          .status(403)
-          .json({ message: "You are not authorized to delete this Comment" });
-      }
-
-      //Delete Comment
-      await Comment.deleteOne({ _id });
-      res.json({ message: "Comment deleted successfully" });
-    } catch (e) {
-      console.error("Error deleting comment:", e);
-      next(e);
-    }
-  });
-}
-
 module.exports = {
   createPost,
   updatePost,
@@ -405,6 +369,5 @@ module.exports = {
   getPostsByUser,
   getPostById,
   updateLikeStatus,
-  searchPosts,
-  deleteComment,
+  searchPosts
 };

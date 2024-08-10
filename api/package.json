@@ -13,7 +13,6 @@
     "@aws-sdk/s3-request-presigner": "^3.606.0",
     "aws-sdk": "^2.1651.0",
     "bcryptjs": "^2.4.3",
-    "blog-app": "file:",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
