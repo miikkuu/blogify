@@ -363,7 +363,9 @@ const searchPosts = async (req, res) => {
 };
 
 const deleteComment = async (req, res, next) => {
-  const {_id} = req.query;
+  console.log("deleteComment");
+  const {id} = req.query;
+  console.log("id", id);
   const { token } = req.cookies;
 
   if (!token) {
@@ -375,7 +377,8 @@ const deleteComment = async (req, res, next) => {
 
     try {
       //find the comment to be deleted
-      const commentDoc = await Comment.findOne({_id});
+      const commentDoc = await Comment.findOne({id});
+      console.log("commentDoc");
       if (!commentDoc) {
         return res.status(404).json({ message: "Comment not found" });
       }
@@ -388,7 +391,7 @@ const deleteComment = async (req, res, next) => {
       }
 
       //Delete Comment
-      await Comment.deleteOne({ _id });
+      await Comment.deleteOne({ id });
       res.json({ message: "Comment deleted successfully" });
     } catch (e) {
       console.error("Error deleting comment:", e);

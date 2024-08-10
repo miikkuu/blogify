@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState, useContext } from "react";
 import { format } from "date-fns";
 import { UserContext } from "../contexts/UserContext";
 
+const API_BACKEND_URL = import.meta.env.VITE_API_BACKEND_URL;
+
 export default function CommentSection({ postId }) {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
@@ -10,10 +12,11 @@ export default function CommentSection({ postId }) {
   const fetchComments = useCallback(async () => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_BACKEND_URL}/posts/${postId}/comments`
+        `${API_BACKEND_URL}/posts/${postId}/comments`
       );
       if (response.ok) {
-        await response.json().then((data) => setComments(data));
+        const data = await response.json();
+        setComments(data);
       } else {
         throw new Error("Failed to fetch comments");
       }
@@ -26,28 +29,30 @@ export default function CommentSection({ postId }) {
     fetchComments();
   }, [fetchComments]);
 
-  async function handleDeleteComment(comment) {
-      const {_id} = comment;
-      try{
-        const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/comments?_id=${_id}`, {
-          method: "DELETE",
-          credentials: "include",
-        });
-        if (!response.ok) {
-          throw new Error("Failed to delete post");
-        }
-        navigate("/");
-      } catch (error) {
-        console.error("Error deleting comment:", error);
-        setError("Failed to delete the comment. Please try again.");
-      }
-  }
+  const handleDeleteComment = useCallback(async (comment) => {
+    const { _id } = comment;
 
-  async function handleSubmitComment(e) {
+    try {
+      const response = await fetch(`${API_BACKEND_URL}/posts/comments/${_id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!response.ok) {
+        throw new Error("Failed to delete post");
+      }
+      setComments((prevComments) =>
+        prevComments.filter((c) => c._id !== _id)
+      );
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+    }
+  }, []);
+
+  const handleSubmitComment = useCallback(async (e) => {
     e.preventDefault();
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_BACKEND_URL}/posts/${postId}/comments`,
+        `${API_BACKEND_URL}/posts/${postId}/comments`,
         {
           method: "POST",
           headers: {
@@ -66,28 +71,44 @@ export default function CommentSection({ postId }) {
     } catch (error) {
       console.error("Error submitting comment:", error);
     }
-  }
+  }, [fetchComments, newComment, postId]);
 
   return (
     <div className="mt-8">
       <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
         Comments
       </h2>
-      {comments.map((comment) => (
-        <div
-          key={comment._id}
-          className="mb-4 p-4 bg-gray-200 dark:bg-gray-800 rounded"
-        >
-          <p className="font-semibold text-gray-900 dark:text-gray-100">
-          {comment.author.username.split(" ").length === 3 ? comment.author.username.split(" ").slice(0, 2).join(" ") : comment.author.username}
-          </p>
-          <p className="text-gray-800 dark:text-gray-300">{comment.content}</p>
-          <button onClick={() => handleDeleteComment(comment)} className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-700">Delete Comment</button>
-          <time className="text-sm text-gray-500 dark:text-gray-400">
-            {format(new Date(comment.createdAt), "d MMMM yyyy HH:mm")}
-          </time>
-        </div>
-      ))}
+      {comments.map((comment) => {
+        const username =
+          comment.author?.username?.split(" ").slice(0, 2).join(" ") ||
+          comment.author?.username;
+        const userId = comment.author?._id;
+
+        return (
+          <div
+            key={comment._id}
+            className="mb-4 p-4 bg-gray-200 dark:bg-gray-800 rounded"
+          >
+            <p className="font-semibold text-gray-900 dark:text-gray-100">
+              {username}
+            </p>
+            <p className="text-gray-800 dark:text-gray-300">
+              {comment.content}
+            </p>
+            {userInfo?.id === userId && (
+              <button
+                onClick={() => handleDeleteComment(comment)}
+                className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-700 float-right"
+              >
+                Delete Comment
+              </button>
+            )}
+            <time className="text-sm text-gray-500 dark:text-gray-400">
+              {format(new Date(comment.createdAt), "d MMMM yyyy HH:mm")}
+            </time>
+          </div>
+        );
+      })}
       {userInfo && (
         <form onSubmit={handleSubmitComment} className="mt-4">
           <textarea
