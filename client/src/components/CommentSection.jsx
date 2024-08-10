@@ -26,6 +26,23 @@ export default function CommentSection({ postId }) {
     fetchComments();
   }, [fetchComments]);
 
+  async function handleDeleteComment(comment) {
+      const {_id} = comment;
+      try{
+        const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/comments?_id=${_id}`, {
+          method: "DELETE",
+          credentials: "include",
+        });
+        if (!response.ok) {
+          throw new Error("Failed to delete post");
+        }
+        navigate("/");
+      } catch (error) {
+        console.error("Error deleting comment:", error);
+        setError("Failed to delete the comment. Please try again.");
+      }
+  }
+
   async function handleSubmitComment(e) {
     e.preventDefault();
     try {
@@ -65,6 +82,7 @@ export default function CommentSection({ postId }) {
           {comment.author.username.split(" ").length === 3 ? comment.author.username.split(" ").slice(0, 2).join(" ") : comment.author.username}
           </p>
           <p className="text-gray-800 dark:text-gray-300">{comment.content}</p>
+          <button onClick={() => handleDeleteComment(comment)} className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-700">Delete Comment</button>
           <time className="text-sm text-gray-500 dark:text-gray-400">
             {format(new Date(comment.createdAt), "d MMMM yyyy HH:mm")}
           </time>

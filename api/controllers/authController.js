@@ -29,6 +29,7 @@ const login = async (req, res, next) => {
   const { username, password } = req.body;
   try {
     const userDoc = await User.findOne({ username });
+    console.log("am i here", userDoc);
     if (!userDoc) return res.status(400).json('User not found');
 
     const passOk = bcrypt.compareSync(password, userDoc.password);
