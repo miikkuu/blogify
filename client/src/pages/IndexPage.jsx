@@ -22,7 +22,7 @@ export default function IndexPage() {
     } catch (error) {
       console.error("Error searching posts:", error);
     }
-  }, 300); // Debounce the search function with a delay of 300ms
+  }, 400); // Debounce the search function with a delay of 400ms.
 
   const handleInputChange = (e) => {
     setSearchTerm(e.target.value);

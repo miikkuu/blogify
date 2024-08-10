@@ -23,7 +23,6 @@ app.use('/api/uploads', express.static(__dirname + '/uploads')); // optional: fo
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/gauth', gAuthRoutes); 
-app.delete('/api/comments/:commentId', require('./controllers/commentController').deleteComment);
 
 
 // Error handling middleware

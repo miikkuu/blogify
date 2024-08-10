@@ -40,8 +40,7 @@ exports.addCommentToPost = async (req, res) => {
 exports.deleteComment = async (req, res) => {
   try {
     const { commentId } = req.params;
-    const { id } = req.user; // Assuming req.user is populated by the auth middleware
-
+    const { id } = req.user;
     const comment = await Comment.findById(commentId);
 
     if (!comment) {
