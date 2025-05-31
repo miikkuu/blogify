@@ -102,10 +102,10 @@ export default function PostPage() {
           <p className="text-gray-700 dark:text-gray-500">by - {" "}
              <Link className="text-pink-500 hover:text-blue-300" to={`/posts/user/${postInfo.author._id}`}>
               @{postInfo.author.username.split(" ").length === 3 ? postInfo.author.username.split(" ").slice(0, 2).join(" ") : postInfo.author.username}
-            </Link> 
+            </Link>
           </p>
         </div>
-        <div className="flex items-center">       
+        <div className="flex items-center">
 
           <button
             onClick={handleLike}
@@ -148,9 +148,12 @@ export default function PostPage() {
       </div>
       <div className="mb-8">
         <img
-          src={postInfo.cover? postInfo.cover : "https://via.placeholder.com/400x200?text=Image+Not+Available"}
+          src={postInfo.cover? postInfo.cover : "https://placehold.co/400x200/lightgray/darkgray?text=No+Image"}
           alt={postInfo.title}
           className="w-full h-64 object-cover rounded"
+          onError={(e) => {
+            e.target.src = "https://placehold.co/400x200/lightgray/darkgray?text=No+Image";
+          }}
         />
       </div>
       <div

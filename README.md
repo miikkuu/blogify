@@ -88,7 +88,7 @@ Blogify is not just another blog application. It is a full-fledged platform that
 - **API**
   - `MONGODB_URI`: MongoDB connection string
   - `JWT_SECRET`: Secret key for JWT
-  - `GOOGLE_CLIENT_ID`: Google OAuth client ID
+  - `GOOGLE_CLIENT_ID`: Google OAuth client ID 
   - `GOOGLE_CLIENT_SECRET`: Google OAuth client secret
 
 - **Client**

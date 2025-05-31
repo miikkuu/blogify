@@ -7,7 +7,7 @@ export default function Post({ _id, title, summary, cover, createdAt, author }) 
   const formattedDate = format(new Date(createdAt), 'd MMMM yyyy HH:mm');
   // Function to handle image loading errors
   const handleImageError = (e) => {
-    e.target.src = 'https://via.placeholder.com/400x200?text=Image+Not+Available'; // Placeholder image
+    e.target.src = 'https://placehold.co/400x200/lightgray/darkgray?text=No+Image'; // Placeholder image
   };
 
   return (
@@ -15,9 +15,9 @@ export default function Post({ _id, title, summary, cover, createdAt, author }) 
 <div className="flex flex-col justify-between h-full">
         <div className="flex-shrink-0 ">
           <Link to={`/post/${_id}`}>
-            <img 
-              className="w-full object-cover h-48 md:h-[200px]" 
-              src={cover } 
+            <img
+              className="w-full object-cover h-48 md:h-[200px]"
+              src={cover }
               alt={title}
               onError={handleImageError}
             />
