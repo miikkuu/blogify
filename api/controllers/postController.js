@@ -3,9 +3,12 @@ const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const Comment = require("../models/Comment");
 const { postValidation } = require("../validations/postValidation");
-const { s3Client } = require("../config/s3Config");
-const { DeleteObjectCommand } = require("@aws-sdk/client-s3");
-const { getPresignedUrl } = require("../config/s3Config.js");
+const {
+  s3Client,
+  getPresignedUrl,
+  DeleteObjectCommand,
+  hasValidAwsCredentials
+} = require("../config/s3Config.js");
 const secret = process.env.JWT_SECRET;
 
 const createPost = async (req, res, next) => {
@@ -16,13 +19,27 @@ const createPost = async (req, res, next) => {
     if (err) return next(err);
     try {
       const { title, summary, content } = req.body;
+      // Determine the cover URL based on storage type
+      let coverUrl = "https://placehold.co/400x200/lightgray/darkgray?text=No+Image";
+
+      if (req.file) {
+        if (hasValidAwsCredentials && req.file.location) {
+          // For S3 storage
+          coverUrl = req.file.location;
+          console.log("Using S3 image URL:", coverUrl);
+        } else if (req.file.path) {
+          // For local storage
+          const relativePath = req.file.path.split('uploads/')[1] || req.file.filename;
+          coverUrl = `/api/uploads/${relativePath}`;
+          console.log("Using local image URL:", coverUrl);
+        }
+      }
+
       const postDoc = await Post.create({
         title,
         summary,
         content,
-        cover: req.file
-          ? req.file.location // S3 file URL
-          : "https://via.placeholder.com/400x200?text=Image+Not+Available",
+        cover: coverUrl,
         author: info.id,
       });
       res.json(postDoc);
@@ -48,23 +65,51 @@ const updatePost = async (req, res, next) => {
       postDoc.summary = summary;
       postDoc.content = content;
       if (req.file) {
-        // Delete old file from S3
-        if (
-          postDoc.cover !=
-          "https://via.placeholder.com/400x200?text=Image+Not+Available"
-        ) {
-          console.log("Deleting old image from S3");
-          const oldKey = postDoc.cover;
-          const deleteCommand = new DeleteObjectCommand({
-            Bucket: process.env.AWS_BUCKET_NAME,
-            Key: oldKey,
-          });
-          await s3Client.send(deleteCommand);
-        }
+        // Handle file upload based on whether AWS is configured
+        if (hasValidAwsCredentials && s3Client && DeleteObjectCommand) {
+          // Delete old file from S3 if it's not a placeholder
+          if (
+            postDoc.cover &&
+            postDoc.cover !== "https://via.placeholder.com/400x200?text=Image+Not+Available" &&
+            !postDoc.cover.includes('placeholder')
+          ) {
+            try {
+              console.log("Deleting old image from S3");
+              let oldKey = postDoc.cover;
 
-        if (postDoc.cover != req.file.location) {
-          console.log("Updating new image");
-          postDoc.cover = req.file.location; // update if new image recieved
+              // Extract key from URL if needed
+              if (oldKey.startsWith('http')) {
+                try {
+                  oldKey = new URL(oldKey).pathname.substring(1);
+                } catch (urlError) {
+                  console.log('Invalid URL, using as key:', oldKey);
+                }
+              }
+
+              const deleteCommand = new DeleteObjectCommand({
+                Bucket: process.env.AWS_BUCKET_NAME,
+                Key: oldKey,
+              });
+              await s3Client.send(deleteCommand);
+            } catch (error) {
+              console.log("Error deleting old image:", error.message);
+              // Continue with the update even if delete fails
+            }
+          }
+
+          // Update with new S3 location
+          if (req.file.location && postDoc.cover !== req.file.location) {
+            console.log("Updating with new S3 image");
+            postDoc.cover = req.file.location;
+          }
+        } else {
+          // For local storage
+          if (req.file.path) {
+            console.log("Updating with new local image");
+            // Create a URL path that can be served by the Express static middleware
+            const relativePath = req.file.path.split('uploads/')[1] || req.file.filename;
+            postDoc.cover = `/api/uploads/${relativePath}`;
+          }
         }
       }
       await postDoc.save();
@@ -81,6 +126,7 @@ const getPostsByUser = async (req, res, next) => {
     const { userId } = req.params;
     const user = (await User.findById(userId)) || null;
     const username = user ? user.username : null;
+
     try {
       posts = await Post.find({ author: userId }) // Removed const to use the outer scope variable
         .populate("author", ["username"])
@@ -89,34 +135,28 @@ const getPostsByUser = async (req, res, next) => {
         .exec();
     } catch (e) {
       console.log("error while finding post with userId", e);
+      posts = [];
     }
 
-    const postsWithPresignedUrls = await Promise.all(
-      posts.map(async (post) => {
-        try {
-          let presignedUrl = null;
-       
-            const coverKey = new URL(post.cover).pathname.substring(1); // Remove the leading slash
-            presignedUrl = await getPresignedUrl(coverKey);
-          
-          return {
-            ...post.toObject(),
-            cover: presignedUrl ? presignedUrl : "https://via.placeholder.com/400x200?text=Image+Not+Available", // Fallback to original cover if presigned URL fails
-          };
-        } catch (error) {
-          console.error(
-            "Error generating presigned URL for post:",
-            post.id,
-            error
-          );
-          return post.toObject(); // Fallback to the original post object on error
-        }
-      })
-    );
+    // Simplified version that doesn't rely on S3 presigned URLs
+    const postsWithPresignedUrls = posts.map(post => {
+      try {
+        return {
+          ...post.toObject(),
+          cover: post.cover || "https://placehold.co/400x200/lightgray/darkgray?text=No+Image"
+        };
+      } catch (error) {
+        console.error("Error processing post:", post.id, error);
+        return post.toObject ? post.toObject() : post;
+      }
+    });
+
     const result = {
       postsWithPresignedUrls,
       username,
     };
+
+    console.log(`Found ${postsWithPresignedUrls.length} posts for user ${username || userId}`);
     res.json(result);
   } catch (e) {
     console.error("Error fetching posts using userId:", e);
@@ -133,28 +173,18 @@ const getPosts = async (req, res, next) => {
       .limit(20)
       .exec();
 
-    const postsWithPresignedUrls = await Promise.all(
-      posts.map(async (post) => {
-        try {
-          let presignedUrl = null;
-
-          const coverKey = new URL(post.cover).pathname.substring(1); // Remove the leading slash
-          presignedUrl = await getPresignedUrl(coverKey);
-
-          return {
-            ...post.toObject(),
-            cover: presignedUrl ? presignedUrl : "https://via.placeholder.com/400x200?text=Image+Not+Available", // Fallback to original cover if presigned URL fails
-          };
-        } catch (error) {
-          console.error(
-            "Error generating presigned URL for post:",
-            post.id,
-            error
-          );
-          return post.toObject(); // Fallback to the original post object on error
-        }
-      })
-    );
+    // Simplified version that doesn't rely on S3 presigned URLs for local development
+    const postsWithPresignedUrls = posts.map(post => {
+      try {
+        return {
+          ...post.toObject(),
+          cover: post.cover || "https://placehold.co/400x200/lightgray/darkgray?text=No+Image"
+        };
+      } catch (error) {
+        console.error("Error processing post:", post.id, error);
+        return post.toObject();
+      }
+    });
 
     res.json(postsWithPresignedUrls);
   } catch (e) {
@@ -172,19 +202,19 @@ const getPostById = async (req, res, next) => {
       { path: "_id", select: "userId" },
     ]);
 
-    // Generate pre-signed URL for the post's cover image
-    // Extract the key from the full URL
-    let presignedUrl = null;
-      const coverKey = new URL(postDoc.cover).pathname.substring(1);
-      presignedUrl = await getPresignedUrl(coverKey);
-    
+    if (!postDoc) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    // Simplified version that doesn't rely on S3 presigned URLs
     const postWithPresignedUrl = {
       ...postDoc.toObject(),
-      cover: presignedUrl ? presignedUrl : "https://via.placeholder.com/400x200?text=Image+Not+Available", // Fallback to original cover if presigned URL fails
+      cover: postDoc.cover || "https://placehold.co/400x200/lightgray/darkgray?text=No+Image"
     };
 
     res.json(postWithPresignedUrl);
   } catch (e) {
+    console.error("Error fetching post by ID:", e);
     next(e);
   }
 };
@@ -225,19 +255,53 @@ const deletePost = async (req, res, next) => {
           .json({ message: "You are not authorized to delete this post" });
       }
 
-      // Delete the image from S3 if it exists
+      // Delete the image if it exists and is not a placeholder
       if (
-        postDoc.cover !==
-          "https://via.placeholder.com/400x200?text=Image+Not+Available"
-          && process.env.AWS_BUCKET_NAME
+        postDoc.cover &&
+        postDoc.cover !== "https://placehold.co/400x200/lightgray/darkgray?text=No+Image" &&
+        !postDoc.cover.includes('placeholder')
       ) {
-        const coverKey = postDoc.cover; // Extract the key from the URL
-        const deleteCommand = new DeleteObjectCommand({
-          Bucket: process.env.AWS_BUCKET_NAME,
-          Key: coverKey,
-        });
-        await s3Client.send(deleteCommand);
-        console.log("Deleted old image from S3");
+        // Handle S3 deletion if AWS is configured
+        if (hasValidAwsCredentials && s3Client && DeleteObjectCommand) {
+          try {
+            let coverKey = postDoc.cover;
+
+            // Extract key from URL if needed
+            if (coverKey.startsWith('http')) {
+              try {
+                coverKey = new URL(coverKey).pathname.substring(1);
+              } catch (urlError) {
+                console.log('Invalid URL, using as key:', coverKey);
+              }
+            }
+
+            const deleteCommand = new DeleteObjectCommand({
+              Bucket: process.env.AWS_BUCKET_NAME,
+              Key: coverKey,
+            });
+            await s3Client.send(deleteCommand);
+            console.log("Deleted image from S3:", coverKey);
+          } catch (error) {
+            console.log("Error deleting image from S3:", error.message);
+            // Continue with post deletion even if image deletion fails
+          }
+        } else if (postDoc.cover.startsWith('/api/uploads/')) {
+          // For local storage, try to delete the file
+          try {
+            const fs = require('fs');
+            const path = require('path');
+            const filename = postDoc.cover.split('/').pop();
+            const filePath = path.join(__dirname, '..', 'uploads', filename);
+
+            if (fs.existsSync(filePath)) {
+              fs.unlinkSync(filePath);
+              console.log("Deleted local image:", filePath);
+            }
+          } catch (error) {
+            console.log("Error deleting local image:", error.message);
+            // Continue with post deletion even if image deletion fails
+          }
+        }
       }
 
       //Delete Comments
@@ -258,108 +322,48 @@ const searchPosts = async (req, res) => {
 
   try {
     let results;
+
     if (!search) {
       // If no search query is provided, return all posts
-       results = await Post.find()
-      .populate("author", ["username"])
-      .sort({ createdAt: -1 })
-      .limit(20)
-      .exec();
-
+      results = await Post.find()
+        .populate("author", ["username"])
+        .sort({ createdAt: -1 })
+        .limit(20)
+        .exec();
     } else {
-      // Perform search using MongoDB Atlas Search
-      results = await Post.aggregate([
-        {
-          $search: {
-            index: 'default', // Replace with your search index name if different
-            compound: {
-              should: [
-                {
-                  text: {
-                    query: search,
-                    path: ['title', 'summary', 'content'],
-                    fuzzy: {
-                      maxEdits: 2,
-                    }
-                  }
-                },
-                {
-                  autocomplete: {
-                    query: search,
-                    path: 'title',
-                    fuzzy: {
-                      maxEdits: 2,
-                    }
-                  }
-                }
-              ]
-            }
-          }
-        },
-        {
-          $lookup: {
-            from: 'users', // The collection to join
-            localField: 'author', // Field from the Post collection
-            foreignField: '_id', // Field from the User collection
-            as: 'author' // Alias for the joined collection
-          }
-        },
-        {
-          $unwind: '$author' // Unwind the joined collection
-        },
-        {
-          $project: {
-            'author.password': 0, // Exclude the password field if it exists
-            'author.email': 0, // Exclude the email field if it exists
-            'author._id': 0, // Exclude the _id field if it exists
-            'author.__v': 0, // Exclude the __v field if it exists
-            'author.createdAt': 0, // Exclude the createdAt field if it exists
-            'author.updatedAt': 0, // Exclude the updatedAt field if it exists
-            // Include other fields as needed
-          }
-        },
-        {
-          $sort: { createdAt: -1 }
-        },
-        {
-          $limit: 10 // Limit the number of results
-        }
-      ]);
-      
+      // Simple text search without Atlas Search
+      results = await Post.find({
+        $or: [
+          { title: { $regex: search, $options: 'i' } },
+          { summary: { $regex: search, $options: 'i' } },
+          { content: { $regex: search, $options: 'i' } }
+        ]
+      })
+        .populate("author", ["username"])
+        .sort({ createdAt: -1 })
+        .limit(20)
+        .exec();
     }
-  
-   // Convert results to plain JavaScript objects if needed
-   const plainResults = results.map(post => JSON.parse(JSON.stringify(post)));
 
-   // Example of generating presigned URLs (if needed)
-   const postsWithPresignedUrls = await Promise.all(
-    plainResults.map(async (post) => {
+    // Simplified version that doesn't rely on S3 presigned URLs for local development
+    const postsWithPresignedUrls = results.map(post => {
       try {
-        let presignedUrl = null;
-
-        const coverKey = new URL(post.cover).pathname.substring(1); // Remove the leading slash
-        presignedUrl = await getPresignedUrl(coverKey);
-
         return {
-          ...post,
-          cover: presignedUrl ? presignedUrl : "https://via.placeholder.com/400x200?text=Image+Not+Available", // Fallback to original cover if presigned URL fails
+          ...post.toObject(),
+          cover: post.cover || "https://placehold.co/400x200/lightgray/darkgray?text=No+Image"
         };
       } catch (error) {
-        console.error(
-          "Error generating presigned URL for post:",
-          post.id,
-          error
-        );
-        return post; // Fallback to the original post object on error
+        console.error("Error processing post:", post.id, error);
+        return post.toObject ? post.toObject() : post;
       }
-    })
-  );
-  console.log('Posts with presigned URLs:', postsWithPresignedUrls.length);
-  res.json(postsWithPresignedUrls);
- } catch (error) {
-   console.error('Error searching posts:', error);
-   res.status(500).json({ error: 'Internal server error' });
- }
+    });
+
+    console.log('Posts count:', postsWithPresignedUrls.length);
+    res.json(postsWithPresignedUrls);
+  } catch (error) {
+    console.error('Error searching posts:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 };
 
 const deleteComment = async (req, res, next) => {

@@ -13,14 +13,19 @@ export default function IndexPage() {
 
   const handleSearch = debounce(async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BACKEND_URL}/posts/search?search=${searchTerm}`);
+      // If there's a search term, use the search endpoint, otherwise use the regular posts endpoint
+      const endpoint = searchTerm
+        ? `${import.meta.env.VITE_API_BACKEND_URL}/posts/search?search=${searchTerm}`
+        : `${import.meta.env.VITE_API_BACKEND_URL}/posts`;
+
+      const response = await fetch(endpoint);
       if (!response.ok) {
-        throw new Error("Error searching posts");
+        throw new Error("Error fetching posts");
       }
       const data = await response.json();
       setPosts(data);
     } catch (error) {
-      console.error("Error searching posts:", error);
+      console.error("Error fetching posts:", error);
     }
   }, 400); // Debounce the search function with a delay of 400ms.
 
