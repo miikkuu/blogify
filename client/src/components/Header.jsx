@@ -3,6 +3,7 @@ import { useContext } from "react";
 import { UserContext } from "../contexts/UserContext";
 import DarkModeToggle from "./DarkModeToggle";
 import { GoogleLoginButton } from "./GoogleLoginButton";
+import { googleLogout } from '@react-oauth/google';
 
 // Check if Google Client ID is provided and valid
 const hasValidGoogleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID &&
@@ -23,10 +24,9 @@ export default function Header() {
     // Only call googleLogout if Google Client ID is valid
     if (hasValidGoogleClientId) {
       try {
-        const { googleLogout } = require("@react-oauth/google");
         googleLogout();
       } catch (error) {
-        console.log("Google OAuth not available");
+        console.error("Error during Google logout:", error);
       }
     }
   }

@@ -10,7 +10,7 @@ const connectDB = require('./config/db'); // connectDB function
 const app = express();
 connectDB(); // Connect to MongoDB
 
-app.use(cors({ credentials: true, origin: [`${process.env.CORS_DOMAIN_URL}` , 'http://localhost:5173'] }));
+app.use(cors({ credentials: true, origin: [`${process.env.CORS_DOMAIN_URL}` , 'http://localhost:5173', 'http://localhost:5174'] }));
 
 // Middlewares
 app.use(express.json());
