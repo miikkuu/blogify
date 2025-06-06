@@ -1,10 +1,21 @@
 import { useContext } from "react";
-import React  from "react";
-import { GoogleLogin } from "@react-oauth/google";
+import React from "react";
 import { UserContext } from "../contexts/UserContext";
-export const GoogleLoginButton = (props) => {
+import { GoogleLogin } from "@react-oauth/google"; // Moved to top-level
 
-    const { setUserInfo ,darkModeCheck } = useContext(UserContext);
+// Check if Google Client ID is provided and valid
+const hasValidGoogleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID &&
+                               import.meta.env.VITE_GOOGLE_CLIENT_ID !== 'your_google_client_id' &&
+                               import.meta.env.VITE_GOOGLE_CLIENT_ID.length > 10;
+
+export const GoogleLoginButton = (props) => {
+  // If Google Client ID is not valid, don't render anything
+  if (!hasValidGoogleClientId) {
+    return null;
+  }
+
+  const { setUserInfo } = useContext(UserContext);
+
   const handleGoogleSuccess = async (credentialResponse) => {
     const { credential } = credentialResponse; // Extract the credential object
     const token = credential;
@@ -17,7 +28,7 @@ export const GoogleLoginButton = (props) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ token }),
-          credentials: "include",
+          credentials: "include", 
         }
       );
       if (response.ok) {
@@ -30,15 +41,17 @@ export const GoogleLoginButton = (props) => {
       console.error("Error during Google login:", error);
     }
   };
+
   return (
     <GoogleLogin
       onSuccess={handleGoogleSuccess}
       onError={() => {
         console.log("Login Failed");
       }}
-      useOneTap={true} 
-      {...props}       
+      useOneTap={true}
       
+     
+      {...props} 
     />
   );
 };
