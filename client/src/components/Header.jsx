@@ -46,7 +46,7 @@ export default function Header() {
           {username && (
             <Link
               to={`/posts/user/${id}`}
-              className="lg:mr-[500px] px-2  md:text-nowrap   p-1  mt-3 sm:mt-2 border-[1px] text-sm sm:text-base sm:p-2  text-center text-base text-gray-900 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white rounded-xl font-medium transition-transform duration-500 ease-in-out transform hover:scale-110 shadow-md"
+              className="lg:mr-[500px] px-2  md:text-nowrap   p-1  mt-3 sm:mt-2 border-[1px] text-sm sm:text-base sm:p-2  text-center  text-gray-900 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white rounded-xl font-medium transition-transform duration-500 ease-in-out transform hover:scale-110 shadow-md"
             >
               {`${username.split(" ")[0]}'s`} Posts
             </Link>
@@ -60,7 +60,7 @@ export default function Header() {
             <>
               <Link
                 to="/create"
-                className=" p-1 px-2 mt-1 sm:mt-0 border-[1px] text-sm sm:text-base sm:p-2  text-center text-base text-gray-900 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white rounded-xl font-medium transition-transform duration-500 ease-in-out transform hover:scale-110 shadow-md"
+                className=" p-1 px-2 mt-1 sm:mt-0 border-[1px] text-sm sm:text-base sm:p-2  text-center text-gray-900 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white rounded-xl font-medium transition-transform duration-500 ease-in-out transform hover:scale-110 shadow-md"
               >
                 Create Post
               </Link>
