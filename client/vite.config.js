@@ -5,4 +5,7 @@ import postcss from 'postcss'; // Import your PostCSS config
 export default defineConfig({
   base: '/',
   plugins: [react(), postcss()], // Add postcss plugin to the plugins array
+  server: {
+    port: 5174,
+  },
 });

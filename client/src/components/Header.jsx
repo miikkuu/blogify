@@ -3,7 +3,12 @@ import { useContext } from "react";
 import { UserContext } from "../contexts/UserContext";
 import DarkModeToggle from "./DarkModeToggle";
 import { GoogleLoginButton } from "./GoogleLoginButton";
-import { googleLogout } from "@react-oauth/google";
+import { googleLogout } from '@react-oauth/google';
+
+// Check if Google Client ID is provided and valid
+const hasValidGoogleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID &&
+                              import.meta.env.VITE_GOOGLE_CLIENT_ID !== 'your_google_client_id' &&
+                              import.meta.env.VITE_GOOGLE_CLIENT_ID.length > 10;
 
 export default function Header() {
   const { userInfo, setUserInfo } = useContext(UserContext);
@@ -15,7 +20,15 @@ export default function Header() {
       method: "POST",
     });
     setUserInfo(null);
-    googleLogout();
+
+    // Only call googleLogout if Google Client ID is valid
+    if (hasValidGoogleClientId) {
+      try {
+        googleLogout();
+      } catch (error) {
+        console.error("Error during Google logout:", error);
+      }
+    }
   }
 
 
@@ -39,7 +52,7 @@ export default function Header() {
             </Link>
           )}
         </div>
-        <nav className="flex sm:text-nowrap    mx-2 sm:mx-2 gap-2 justify-center items-center">
+        <nav className="flex sm:text-nowrap  mx-2 sm:mx-2 gap-2 justify-center items-center">
           <div className="-mr-2 sm:-mr-3 mt-1 sm:mt-0">
             <DarkModeToggle />
           </div>
@@ -73,7 +86,7 @@ export default function Header() {
                 Register
               </Link>
               <div className="mt-1 sm:mt-0">
-                <GoogleLoginButton type="icon" shape="pill" width="40px" text="signin" />
+                <GoogleLoginButton type="icon" shape="pill" width="40px" text="signin" theme="filled_blue" />
               </div>
             </>
           )}
