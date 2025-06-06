@@ -28,7 +28,7 @@ export const GoogleLoginButton = (props) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ token }),
-          credentials: "include",
+          credentials: "include", 
         }
       );
       if (response.ok) {
@@ -49,11 +49,9 @@ export const GoogleLoginButton = (props) => {
         console.log("Login Failed");
       }}
       useOneTap={true}
-      type="icon"
-      theme="outline"
-      size="large"
-      data-theme="light"
-      {...props}
+      
+     
+      {...props} 
     />
   );
 };

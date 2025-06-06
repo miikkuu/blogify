@@ -52,7 +52,7 @@ export default function Header() {
             </Link>
           )}
         </div>
-        <nav className="flex sm:text-nowrap    mx-2 sm:mx-2 gap-2 justify-center items-center">
+        <nav className="flex sm:text-nowrap  mx-2 sm:mx-2 gap-2 justify-center items-center">
           <div className="-mr-2 sm:-mr-3 mt-1 sm:mt-0">
             <DarkModeToggle />
           </div>
@@ -86,7 +86,7 @@ export default function Header() {
                 Register
               </Link>
               <div className="mt-1 sm:mt-0">
-                <GoogleLoginButton type="icon" shape="pill" width="40px" text="signin" />
+                <GoogleLoginButton type="icon" shape="pill" width="40px" text="signin" theme="filled_blue" />
               </div>
             </>
           )}
