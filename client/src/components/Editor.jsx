@@ -3,7 +3,7 @@ import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
 
 const Editor = ({ value, onChange }) => {
-  const editorRef = useRef(null);
+  const editorRef = useRef(null); 
   const quillRef = useRef(null);
 
   useEffect(() => {

@@ -7,7 +7,7 @@ const API_BACKEND_URL = import.meta.env.VITE_API_BACKEND_URL;
 const CreatePost = () => {
   const [title, setTitle] = useState('');
   const [summary, setSummary] = useState('');
-  const [content, setContent] = useState('');
+  const [content, setContent] = useState(null);
   const [file, setFile] = useState(null);
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -15,10 +15,10 @@ const CreatePost = () => {
   const createNewPost = async (ev) => {
     ev.preventDefault();
 
-    const data = new FormData();
+    const data = new FormData(); // Create a FormData object to send the form data.
     data.append('title', title);
     data.append('summary', summary);
-    data.append('content', content); // Ensure content is set
+    data.append('content', content); 
     data.append('file', file);
 
     try {
@@ -40,6 +40,7 @@ const CreatePost = () => {
   };
 
   return (
+    
     <form onSubmit={createNewPost} className="max-w-2xl mx-auto mt-8">
       <input
         type="text"
@@ -61,6 +62,7 @@ const CreatePost = () => {
         className="w-full p-2 mb-4 border border-gray-300 rounded bg-white text-black"
       />
       <Editor value={content} onChange={setContent} />
+      
       {error && <p className="text-red-500">{error}</p>}
       <button className="w-full p-2 mt-4 bg-black text-white rounded hover:bg-gray-800">
         Create post
