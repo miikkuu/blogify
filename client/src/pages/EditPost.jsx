@@ -8,7 +8,7 @@ const EditPost = () => {
   const { id } = useParams();
   const [title, setTitle] = useState('');
   const [summary, setSummary] = useState('');
-  const [content, setContent] = useState('');
+  const [content, setContent] = useState(null);
   const [file, setFile] = useState(null);
   const [redirect, setRedirect] = useState(false);
   const [error, setError] = useState('');
@@ -59,29 +59,32 @@ const EditPost = () => {
 
   return (
     <form onSubmit={updatePost} className="max-w-2xl mx-auto mt-8">
-      <h1 className="text-3xl font-bold mb-6 text-center">Edit Post</h1>
+      <h1 className="text-3xl  font-bold mb-6 text-center">Edit Post</h1>
       {error && <p className="text-red-500 mb-4">{error}</p>}
       <input
         type="title"
         placeholder="Title"
         value={title}
         onChange={(ev) => setTitle(ev.target.value)}
-        className="w-full p-2 mb-4 border border-gray-300 rounded"
+        className="w-full p-2 mb-4 border border-gray-300 dark:text-black rounded"
       />
       <input
         type="summary"
         placeholder="Summary"
         value={summary}
         onChange={(ev) => setSummary(ev.target.value)}
-        className="w-full p-2 mb-4 border border-gray-300 rounded"
+        className="w-full p-2 mb-4 border border-gray-300 dark:text-black rounded"
       />
       <input
         type="file"
         onChange={(ev) => setFile(ev.target.files?.[0])}
-        className="w-full p-2 mb-4 border border-gray-300 rounded"
+        className="w-full p-2 mb-4 border bg-white border-gray-300 dark:text-gray-900 rounded"
       />
-      <Editor onChange={setContent} value={content} />
-      <button className="w-full p-2 mt-4 bg-black text-white rounded hover:bg-gray-800">
+      <div className="bg-white text-gray-900">
+        <Editor onChange={setContent} value={content} />
+      </div>
+      
+      <button className="w-full p-2 mt-4 bg-black text-white rounded  hover:bg-gray-800">
         Update post
       </button>
     </form>

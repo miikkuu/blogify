@@ -1,5 +1,5 @@
 import { useContext, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { UserContext } from "../contexts/UserContext";
 import { GoogleLoginButton } from "../components/GoogleLoginButton";
 
@@ -43,8 +43,9 @@ export default function LoginPage() {
     }
   }
 
+  const navigate = useNavigate();
   if (redirect) {
-    return <Navigate to={"/"} />;
+  navigate("/");
   }
 
   return (

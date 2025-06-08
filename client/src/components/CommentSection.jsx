@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, useContext } from "react";
 import { format } from "date-fns";
 import { UserContext } from "../contexts/UserContext";
+import { Link } from "react-router-dom";
 
 const API_BACKEND_URL = import.meta.env.VITE_API_BACKEND_URL;
 
@@ -109,23 +110,30 @@ export default function CommentSection({ postId }) {
           </div>
         );
       })}
-      {userInfo && (
+      {userInfo ? (
         <form onSubmit={handleSubmitComment} className="mt-4">
           <textarea
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
-            placeholder="Write a comment..."
-            className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
-            rows="3"
+            placeholder="Add a comment..."
+            className="w-full p-2 border border-gray-300 rounded"
           />
           <button
             type="submit"
-            className="mt-2 px-4 py-2 bg-black dark:bg-gray-100 text-white dark:text-black rounded hover:bg-gray-800 dark:hover:bg-gray-300"
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
-            Submit Comment
+            Submit
           </button>
         </form>
-      )}
+      ) : (
+        <p className="mt-4 mx-4 text-gray-500 dark:text-gray-400">
+          Please 
+          <Link to="/login" className="text-blue-500 hover:underline"> log in </Link> 
+          to add a comment.
+        </p>
+      )}    
+    
+    
     </div>
   );
 }

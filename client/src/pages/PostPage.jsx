@@ -3,7 +3,8 @@ import { useParams, Link, useNavigate } from "react-router-dom"; // Step 1: Impo
 import { UserContext } from "../contexts/UserContext";
 import CommentSection from "../components/CommentSection";
 
-export default function PostPage() {
+export default function 
+PostPage() {
   const [postInfo, setPostInfo] = useState(null);
   const [error, setError] = useState("");
   const [isLiked, setIsLiked] = useState(false);
@@ -148,7 +149,11 @@ export default function PostPage() {
       </div>
       <div className="mb-8">
         <img
-          src={postInfo.cover? postInfo.cover : "https://placehold.co/400x200/lightgray/darkgray?text=No+Image"}
+          src={postInfo.cover ?
+               (postInfo.cover.startsWith('http') ?
+                postInfo.cover :
+                `${import.meta.env.VITE_API_BACKEND_URL.replace('/api', '')}${postInfo.cover}`)
+               : "https://placehold.co/400x200/lightgray/darkgray?text=No+Image"}
           alt={postInfo.title}
           className="w-full h-64 object-cover rounded"
           onError={(e) => {
