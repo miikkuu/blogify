@@ -7,7 +7,7 @@ const PostSchema = new Schema({
   content: String,
   cover: String,
   like: { type: Number, default: 0 },
-  author: { type: Schema.Types.ObjectId, ref: 'User' },
+  author: { type: Schema.Types.ObjectId, ref: 'User' }, // User model reference
 }, {
   timestamps: true,
 });

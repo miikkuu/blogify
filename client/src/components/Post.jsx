@@ -1,4 +1,3 @@
-import React from "react";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 
@@ -17,7 +16,7 @@ export default function Post({ _id, title, summary, cover, createdAt, author }) 
           <Link to={`/post/${_id}`}>
             <img
               className="w-full object-cover h-48 md:h-[200px]"
-              src={cover }
+              src={cover.startsWith('http') ? cover : `${import.meta.env.VITE_API_BACKEND_URL.replace('/api', '')}${cover}`}
               alt={title}
               onError={handleImageError}
             />
@@ -30,7 +29,10 @@ export default function Post({ _id, title, summary, cover, createdAt, author }) 
         <div className="px-6 mt-[310px] sm:mt-[295px] fixed  -my-2 sm:pb-14 pb-10 ">
        <div className=" ">
        <div className="text-sm font-semibold  text-indigo-600 dark:text-indigo-400">
+         <Link to={`/posts/user/${author._id}`}>
         {author.username.split(" ").length === 3 ? author.username.split(" ").slice(0, 2).join(" ") : author.username}
+                 </Link>
+
         </div>
        <div className="text-sm mr-10  text-gray-500 dark:text-gray-400">{formattedDate}</div>
        </div>

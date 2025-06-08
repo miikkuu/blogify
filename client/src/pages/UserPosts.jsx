@@ -1,10 +1,8 @@
-import { useContext, useEffect, useState } from "react";
+import {  useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import Post from "../components/Post";
-import { UserContext } from "../contexts/UserContext";
 
 export default function UserPosts() {
-    const { userInfo } = useContext(UserContext);
     const { id } = useParams();
     const [posts, setPosts] = useState([]);
     const [username, setUsername] = useState(null);
@@ -40,7 +38,7 @@ export default function UserPosts() {
                     <Link to="/create">✍️Create your first post now! </Link>
                 </p>
             )}
-            {!isLoading && (
+            {!isLoading && postsExist && (
                 <div className="grid gap-8 md:grid-cols-2">
                     {posts.map((post) => (
                         <div key={post._id} className="transform transition duration-300 hover:scale-105">

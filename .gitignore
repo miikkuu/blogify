@@ -31,3 +31,6 @@ pids
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
+
+#roo
+.roo/
