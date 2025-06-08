@@ -2,128 +2,105 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 
+// AWS SDK imports (conditional to avoid errors if not installed/configured)
+let S3Client, GetObjectCommand, DeleteObjectCommand, getSignedUrl, multerS3;
+try {
+  ({ S3Client, GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3'));
+  ({ getSignedUrl } = require("@aws-sdk/s3-request-presigner"));
+  multerS3 = require('multer-s3');
+} catch (e) {
+  console.warn("AWS SDK modules not found. S3 functionality will be disabled.");
+}
+
 // Check if AWS credentials are provided and valid
 const hasValidAwsCredentials =
   process.env.AWS_ACCESS_KEY_ID &&
   process.env.AWS_SECRET_ACCESS_KEY &&
   process.env.AWS_REGION &&
   process.env.AWS_BUCKET_NAME &&
-  process.env.AWS_ACCESS_KEY_ID !== 'dummy_key' &&
-  process.env.AWS_SECRET_ACCESS_KEY !== 'dummy_secret';
+  process.env.AWS_ACCESS_KEY_ID !== 'dummy_key' && // Prevent using dummy credentials
+  process.env.AWS_SECRET_ACCESS_KEY !== 'dummy_secret' && // Prevent using dummy credentials
+  S3Client && GetObjectCommand && DeleteObjectCommand && getSignedUrl && multerS3; // Ensure SDK modules are loaded
 
-// Only initialize AWS SDK if credentials are valid
-let s3Client;
-let GetObjectCommand;
-let DeleteObjectCommand;
-let getSignedUrl;
-let multerS3;
+// Initialize S3 client if credentials are valid
+const s3Client = hasValidAwsCredentials ? new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+}) : null;
 
 if (hasValidAwsCredentials) {
-  try {
-    const { S3Client: S3ClientImport, GetObjectCommand: GetObjectCommandImport } = require('@aws-sdk/client-s3');
-    const { DeleteObjectCommand: DeleteObjectCommandImport } = require('@aws-sdk/client-s3');
-    const { getSignedUrl: getSignedUrlImport } = require("@aws-sdk/s3-request-presigner");
-    multerS3 = require('multer-s3');
-
-    GetObjectCommand = GetObjectCommandImport;
-    DeleteObjectCommand = DeleteObjectCommandImport;
-    getSignedUrl = getSignedUrlImport;
-
-    s3Client = new S3ClientImport({
-      region: process.env.AWS_REGION,
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-      },
-    });
-
-    console.log('AWS S3 client initialized successfully');
-  } catch (error) {
-    console.log('AWS SDK not available or credentials not valid:', error.message);
-    hasValidAwsCredentials = false;
-  }
+  console.log('AWS S3 client initialized successfully.');
 } else {
-  console.log('AWS S3 disabled: No valid AWS credentials provided');
-
-  // Create uploads directory if it doesn't exist
+  console.log('AWS S3 disabled: No valid AWS credentials or SDK modules provided.');
+  // Ensure local 'uploads' directory exists if S3 is not used
   const uploadsDir = path.join(__dirname, '..', 'uploads');
   if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
-    console.log('Created uploads directory');
+    console.log('Created local uploads directory.');
   }
 }
+
 // Configure multer storage based on AWS availability
-let upload;
-if (hasValidAwsCredentials && multerS3 && s3Client) {
-  upload = multer({
-    storage: multerS3({
-      s3: s3Client,
-      bucket: process.env.AWS_BUCKET_NAME,
-      metadata: function (req, file, cb) {
-        cb(null, { fieldName: file.fieldname });
-      },
-      key: function (req, file, cb) {
-        if (file) {
-          const filename = file.originalname.replace(/\s/g, '');
-          console.log("Uploading to S3:", filename);
-          cb(null, filename);
-        } else {
-          cb(null, null); // No file
-        }
-      }
-    })
-  });
-  console.log('Configured multer with S3 storage');
-} else {
-  // Use local storage if AWS is not configured
-  upload = multer({
-    storage: multer.diskStorage({
-      destination: function (req, file, cb) {
-        cb(null, path.join(__dirname, '..', 'uploads/'));
-      },
-      filename: function (req, file, cb) {
-        const filename = file.originalname.replace(/\s/g, '');
-        console.log("Saving locally:", filename);
-        cb(null, filename);
-      }
-    })
-  });
-  console.log('Configured multer with local storage');
-}
+const upload = hasValidAwsCredentials ? multer({
+  storage: multerS3({
+    s3: s3Client,
+    bucket: process.env.AWS_BUCKET_NAME,
+    metadata: (req, file, cb) => {
+      cb(null, { fieldName: file.fieldname });
+    },
+    key: (req, file, cb) => {
+      // Use original filename, replacing spaces for S3 compatibility
+      const filename = file.originalname.replace(/\s/g, '_');
+      console.log("Uploading to S3:", filename);
+      cb(null, filename);
+    }
+  })
+}) : multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, path.join(__dirname, '..', 'uploads/'));
+    },
+    filename: (req, file, cb) => {
+      // Use original filename, replacing spaces for local compatibility
+      const filename = file.originalname.replace(/\s/g, '_');
+      console.log("Saving locally:", filename);
+      cb(null, filename);
+    }
+  })
+});
 
 // Function to get a presigned URL for S3 objects or return local URL
 const getPresignedUrl = async (fileKey) => {
-  // If it's a placeholder image or not a valid URL, return null
+  // Return null for placeholder images or invalid keys
   if (!fileKey || fileKey.includes('placeholder') || fileKey === "400x200") {
     return null;
   }
 
-  // If AWS is not configured, return a local URL if the file exists
+  // If AWS is not configured, assume local storage and return local URL
   if (!hasValidAwsCredentials) {
-    // Check if it's already a full URL
+    // If it's already a full URL (e.g., from a previous S3 public upload), return as is
     if (fileKey.startsWith('http')) {
       return fileKey;
     }
-
     // For local files, construct a local URL
     const localPath = path.join(__dirname, '..', 'uploads', path.basename(fileKey));
-    if (fs.existsSync(localPath)) {
-      return `/api/uploads/${path.basename(fileKey)}`;
-    }
-    return null;
+    return fs.existsSync(localPath) ? `/api/uploads/${path.basename(fileKey)}` : null;
   }
 
-  // If AWS is configured, generate a presigned URL
+  // If AWS is configured, generate a presigned URL for private S3 objects
   try {
-    console.log("Generating presigned URL for", fileKey);
-
-    // Extract the key from the URL if it's a full URL
+    console.log("Generating presigned URL for:", fileKey);
+    // Extract the S3 key from the full URL if necessary
     let key = fileKey;
     if (fileKey.startsWith('http')) {
       try {
-        key = new URL(fileKey).pathname.substring(1);
+        const url = new URL(fileKey);
+        key = url.pathname.substring(1); // Remove leading slash
       } catch (urlError) {
-        console.log('Invalid URL, using as key:', fileKey);
+        console.warn('Invalid URL format for S3 key extraction, using full URL as key:', fileKey);
       }
     }
 
@@ -132,19 +109,19 @@ const getPresignedUrl = async (fileKey) => {
       Key: key,
     });
 
-    // URL will be valid for 1 hour
+    // URL will be valid for 1 hour (3600 seconds)
     return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
   } catch (error) {
-    console.log("Error generating presigned URL:", error.message);
-    return null; // Return null instead of throwing to prevent errors
+    console.error("Error generating presigned URL:", error.message);
+    return null; // Return null to prevent application crash
   }
 };
 
-// Export the DeleteObjectCommand for use in controllers
+// Export necessary components for use in other modules
 module.exports = {
   s3Client,
   upload,
   getPresignedUrl,
-  DeleteObjectCommand,
+  DeleteObjectCommand, // Exported for S3 deletion in postController
   hasValidAwsCredentials
 };

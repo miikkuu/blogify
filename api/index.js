@@ -8,24 +8,28 @@ const postRoutes = require('./routes/postRoutes');
 const errorMiddleware = require('./middlewares/errorMiddleware');
 const connectDB = require('./config/db'); // connectDB function
 const app = express();
+
 connectDB(); // Connect to MongoDB
 
-app.use(cors({ credentials: true, origin: [`${process.env.CORS_DOMAIN_URL}` , 'http://localhost:5173', 'http://localhost:5174'] }));
+app.use(cors({ credentials: true, origin: [`${process.env.CORS_DOMAIN_URL}`, 'http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174'] }));
 
 // Middlewares
-app.use(express.json());
-app.use(cookieParser());
-app.use(morgan('dev'));
-app.use('/api/uploads', express.static(__dirname + '/uploads')); // optional: for experimenting with multer and local /multer
+app.use(express.json());//for parsing JSON request bodies
+app.use(cookieParser());//for parsing cookies
+app.use(morgan('dev'));//for logging HTTP requests.dev mode - for development only
+
+app.use('/api/uploads', express.static(__dirname + '/uploads')); // optional: for experimenting with multer and local /multer-s3
 
 // Routes
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authRoutes); 
 app.use('/api/posts', postRoutes);
+
+
 
 // Check if Google Client ID is provided and valid
 const hasValidGoogleClientId = process.env.GOOGLE_CLIENT_ID &&
-                              process.env.GOOGLE_CLIENT_ID !== 'your_google_client_id' &&
-                              process.env.GOOGLE_CLIENT_ID.length > 10;
+  process.env.GOOGLE_CLIENT_ID !== 'your_google_client_id' &&
+  process.env.GOOGLE_CLIENT_ID.length > 10;
 
 // Only register Google Auth routes if valid credentials are provided
 if (hasValidGoogleClientId) {
