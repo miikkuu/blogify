@@ -12,11 +12,6 @@ const PostSchema = new Schema({
   timestamps: true,
 });
 
-// Add indexes for performance
-PostSchema.index({ author: 1 }); // Index for filtering by author
-PostSchema.index({ createdAt: -1 }); // Index for sorting by creation date (descending)
-PostSchema.index({ title: 'text', summary: 'text', content: 'text' }); // Text index for search functionality
-
 const PostModel = model('Post', PostSchema);
 
 module.exports = PostModel;

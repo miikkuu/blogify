@@ -22,11 +22,6 @@ const commentSchema = new mongoose.Schema({
   },
 });
 
-// Add indexes for performance
-commentSchema.index({ postId: 1 }); // Index for filtering comments by post
-commentSchema.index({ author: 1 }); // Index for filtering comments by author
-commentSchema.index({ createdAt: -1 }); // Index for sorting comments by creation date (descending)
-
 const Comment = mongoose.model('Comment', commentSchema);
 
 module.exports = Comment;

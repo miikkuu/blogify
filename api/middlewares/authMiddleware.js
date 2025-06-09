@@ -1,16 +1,21 @@
-const jwt = require('jsonwebtoken');
-const secret = process.env.JWT_SECRET;
+const asyncHandler = require('express-async-handler');
+const authService = require('../services/authService');
+const { AuthError } = require('../utils/errors');
 
-const authMiddleware = (req, res, next) => {
+const authMiddleware = asyncHandler(async (req, res, next) => {
   const { token } = req.cookies;
-  if (!token) return res.status(401).json('Access denied');
+  if (!token) {
+    throw new AuthError('Access denied: No token provided');
+  }
 
-  jwt.verify(token, secret, (err, user) => {
-    if (err) return res.status(403).json('Invalid token');
+  try {
+    const user = await authService.getProfile(token);
     req.user = user;
-    console.log("verified")
     next();
-  });
-};
+  } catch (error) {
+    // authService.getProfile already throws AuthError, so we can re-throw it
+    throw error;
+  }
+});
 
 module.exports = authMiddleware;

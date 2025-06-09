@@ -1,13 +1,11 @@
 const Joi = require('joi');
 
-const postValidation = (data) => {
-  const schema = Joi.object({
-    title: Joi.string().required(),
-    summary: Joi.string().required(),
-    content: Joi.string().required(),
-    file: Joi.any(),
-  });
-  return schema.validate(data);
-};
+const postValidation = Joi.object({
+  title: Joi.string().required(),
+  summary: Joi.string().required(),
+  content: Joi.string().required(),
+  file: Joi.any(),
+  id: Joi.string().optional(), // Allow id for update operations if sent in body
+});
 
 module.exports= { postValidation };

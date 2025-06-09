@@ -21,7 +21,7 @@ export const GoogleLoginButton = (props) => {
     const token = credential;
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_BACKEND_URL}/gauth/google`,
+        `${import.meta.env.VITE_API_BACKEND_URL}/auth/google`,
         {
           method: "POST",
           headers: {

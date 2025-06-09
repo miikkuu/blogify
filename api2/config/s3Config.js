@@ -3,10 +3,9 @@ const fs = require('fs');
 const path = require('path');
 
 // AWS SDK imports (conditional to avoid errors if not installed/configured)
-let S3Client, GetObjectCommand, DeleteObjectCommand, getSignedUrl, multerS3;
+let S3Client, multerS3; // Removed GetObjectCommand, DeleteObjectCommand, getSignedUrl
 try {
-  ({ S3Client, GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3'));
-  ({ getSignedUrl } = require("@aws-sdk/s3-request-presigner"));
+  ({ S3Client } = require('@aws-sdk/client-s3')); // Only S3Client needed here
   multerS3 = require('multer-s3');
 } catch (e) {
   console.warn("AWS SDK modules not found. S3 functionality will be disabled.");
@@ -20,7 +19,7 @@ const hasValidAwsCredentials =
   process.env.AWS_BUCKET_NAME &&
   process.env.AWS_ACCESS_KEY_ID !== 'dummy_key' && // Prevent using dummy credentials
   process.env.AWS_SECRET_ACCESS_KEY !== 'dummy_secret' && // Prevent using dummy credentials
-  S3Client && GetObjectCommand && DeleteObjectCommand && getSignedUrl && multerS3; // Ensure SDK modules are loaded
+  S3Client && multerS3; // Ensure SDK modules are loaded (removed GetObjectCommand, DeleteObjectCommand, getSignedUrl)
 
 // Initialize S3 client if credentials are valid
 const s3Client = hasValidAwsCredentials ? new S3Client({
@@ -72,56 +71,13 @@ const upload = hasValidAwsCredentials ? multer({
   })
 });
 
-// Function to get a presigned URL for S3 objects or return local URL
-const getPresignedUrl = async (fileKey) => {
-  // Return null for placeholder images or invalid keys
-  if (!fileKey || fileKey.includes('placeholder') || fileKey === "400x200") {
-    return null;
-  }
-
-  // If AWS is not configured, assume local storage and return local URL
-  if (!hasValidAwsCredentials) {
-    // If it's already a full URL (e.g., from a previous S3 public upload), return as is
-    if (fileKey.startsWith('http')) {
-      return fileKey;
-    }
-    // For local files, construct a local URL
-    const localPath = path.join(__dirname, '..', 'uploads', path.basename(fileKey));
-    return fs.existsSync(localPath) ? `/api/uploads/${path.basename(fileKey)}` : null;
-  }
-
-  // If AWS is configured, generate a presigned URL for private S3 objects
-  try {
-    console.log("Generating presigned URL for:", fileKey);
-    // Extract the S3 key from the full URL if necessary
-    let key = fileKey;
-    if (fileKey.startsWith('http')) {
-      try {
-        const url = new URL(fileKey);
-        key = url.pathname.substring(1); // Remove leading slash
-      } catch (urlError) {
-        console.warn('Invalid URL format for S3 key extraction, using full URL as key:', fileKey);
-      }
-    }
-
-    const command = new GetObjectCommand({
-      Bucket: process.env.AWS_BUCKET_NAME,
-      Key: key,
-    });
-
-    // URL will be valid for 1 hour (3600 seconds)
-    return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
-  } catch (error) {
-    console.error("Error generating presigned URL:", error.message);
-    return null; // Return null to prevent application crash
-  }
-};
+// The getPresignedUrl function has been removed as its logic is now in FileService.getFileUrl()
 
 // Export necessary components for use in other modules
 module.exports = {
   s3Client,
   upload,
-  getPresignedUrl,
-  DeleteObjectCommand, // Exported for S3 deletion in postController
+  // getPresignedUrl, // Removed
+  // DeleteObjectCommand, // Removed: No longer needed by postController directly
   hasValidAwsCredentials
 };

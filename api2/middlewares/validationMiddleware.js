@@ -1,11 +1,8 @@
 const Joi = require('joi');
-const { ValidationError } = require('../utils/errors');
 
 const validate = (schema) => (req, res, next) => {
   const { error } = schema.validate(req.body);
-  if (error) {
-    throw new ValidationError(error.details[0].message);
-  }
+  if (error) return res.status(400).json(error.details);
   next();
 };
 

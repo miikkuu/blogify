@@ -26,6 +26,21 @@ app.use('/api/posts', postRoutes);
 
 
 
+// Check if Google Client ID is provided and valid
+const hasValidGoogleClientId = process.env.GOOGLE_CLIENT_ID &&
+  process.env.GOOGLE_CLIENT_ID !== 'your_google_client_id' &&
+  process.env.GOOGLE_CLIENT_ID.length > 10;
+
+// Only register Google Auth routes if valid credentials are provided
+if (hasValidGoogleClientId) {
+  const gAuthRoutes = require('./routes/gAuthRoutes');
+  app.use('/api/gauth', gAuthRoutes);
+  console.log('Google OAuth routes registered');
+} else {
+  console.log('Google OAuth routes not registered: No valid Google Client ID provided');
+}
+
+
 // Error handling middleware
 app.use(errorMiddleware);
 
