@@ -153,12 +153,14 @@ const getPostsByUser = async (req, res, next) => {
         return {
           ...post.toObject(),
           cover: cover || DEFAULT_PLACEHOLDER_IMAGE,
+
         };
       } catch (error) {
         console.error("Error processing post:", post.id, error);
         return post.toObject ? post.toObject() : post;
       }
     }));
+
 
     const result = {
       postsWithPresignedUrls,
@@ -191,12 +193,14 @@ const getPosts = async (req, res, next) => {
         return {
           ...post.toObject(),
           cover: cover || DEFAULT_PLACEHOLDER_IMAGE,
+
         };
       } catch (error) {
         console.error("Error processing post:", post.id, error);
         return post.toObject();
       }
     }));
+
 
     res.json(postsWithPresignedUrls);
   } catch (e) {
@@ -226,6 +230,7 @@ const getPostById = async (req, res, next) => {
     const postWithPresignedUrl = {
       ...postDoc.toObject(),
       cover: cover || DEFAULT_PLACEHOLDER_IMAGE,
+
     };
 
     res.json(postWithPresignedUrl);
@@ -362,12 +367,14 @@ const searchPosts = async (req, res) => {
         return {
           ...post.toObject(),
           cover: cover || DEFAULT_PLACEHOLDER_IMAGE,
+
         };
       } catch (error) {
         console.error("Error processing post:", post.id, error);
         return post.toObject ? post.toObject() : post;
       }
     }));
+
 
     console.log('Posts count:', postsWithPresignedUrls.length);
     res.json(postsWithPresignedUrls);

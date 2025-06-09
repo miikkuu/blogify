@@ -92,6 +92,7 @@ const getPresignedUrl = async (fileKey) => {
 
   // If AWS is configured, generate a presigned URL for private S3 objects
   try {
+
     // Extract the S3 key from the full URL if necessary
     let key = fileKey;
     if (fileKey.startsWith('http')) {

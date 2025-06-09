@@ -61,3 +61,4 @@ jobs:
             docker-compose -f docker-compose.yml pull
             docker-compose -f docker-compose.yml up -d --build --remove-orphans
             docker system prune -f # Clean up old images/containers
+
