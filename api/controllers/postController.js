@@ -144,18 +144,21 @@ const getPostsByUser = async (req, res, next) => {
       posts = [];
     }
 
-    // Simplified version that doesn't rely on S3 presigned URLs
-    const postsWithPresignedUrls = posts.map(post => {
+    const postsWithPresignedUrls = await Promise.all(posts.map(async (post) => {
       try {
+        let cover = post.cover;
+        if (hasValidAwsCredentials && cover && cover !== DEFAULT_PLACEHOLDER_IMAGE && !cover.includes('placeholder')) {
+          cover = await getPresignedUrl(cover);
+        }
         return {
           ...post.toObject(),
-          cover: post.cover || DEFAULT_PLACEHOLDER_IMAGE
+          cover: cover || DEFAULT_PLACEHOLDER_IMAGE,
         };
       } catch (error) {
         console.error("Error processing post:", post.id, error);
         return post.toObject ? post.toObject() : post;
       }
-    });
+    }));
 
     const result = {
       postsWithPresignedUrls,
@@ -179,18 +182,21 @@ const getPosts = async (req, res, next) => {
       .limit(20) // Limit the number of posts returned to 20.
       .exec(); //exec executes the query and returns the results
 
-    // Simplified version that doesn't rely on S3 presigned URLs for local development
-    const postsWithPresignedUrls = posts.map(post => {
+    const postsWithPresignedUrls = await Promise.all(posts.map(async (post) => {
       try {
+        let cover = post.cover;
+        if (hasValidAwsCredentials && cover && cover !== DEFAULT_PLACEHOLDER_IMAGE && !cover.includes('placeholder')) {
+          cover = await getPresignedUrl(cover);
+        }
         return {
           ...post.toObject(),
-          cover: post.cover || DEFAULT_PLACEHOLDER_IMAGE
+          cover: cover || DEFAULT_PLACEHOLDER_IMAGE,
         };
       } catch (error) {
         console.error("Error processing post:", post.id, error);
         return post.toObject();
       }
-    });
+    }));
 
     res.json(postsWithPresignedUrls);
   } catch (e) {
@@ -212,10 +218,14 @@ const getPostById = async (req, res, next) => {
       return res.status(404).json({ message: "Post not found" });
     }
 
-    // Simplified version that doesn't rely on S3 presigned URLs
+    let cover = postDoc.cover;
+    if (hasValidAwsCredentials && cover && cover !== DEFAULT_PLACEHOLDER_IMAGE && !cover.includes('placeholder')) {
+      cover = await getPresignedUrl(cover);
+    }
+
     const postWithPresignedUrl = {
       ...postDoc.toObject(),
-      cover: postDoc.cover || DEFAULT_PLACEHOLDER_IMAGE
+      cover: cover || DEFAULT_PLACEHOLDER_IMAGE,
     };
 
     res.json(postWithPresignedUrl);
@@ -343,18 +353,21 @@ const searchPosts = async (req, res) => {
         .exec();
     }
 
-    // Simplified version that doesn't rely on S3 presigned URLs for local development
-    const postsWithPresignedUrls = results.map(post => {
+    const postsWithPresignedUrls = await Promise.all(results.map(async (post) => {
       try {
+        let cover = post.cover;
+        if (hasValidAwsCredentials && cover && cover !== DEFAULT_PLACEHOLDER_IMAGE && !cover.includes('placeholder')) {
+          cover = await getPresignedUrl(cover);
+        }
         return {
           ...post.toObject(),
-          cover: post.cover || DEFAULT_PLACEHOLDER_IMAGE
+          cover: cover || DEFAULT_PLACEHOLDER_IMAGE,
         };
       } catch (error) {
         console.error("Error processing post:", post.id, error);
         return post.toObject ? post.toObject() : post;
       }
-    });
+    }));
 
     console.log('Posts count:', postsWithPresignedUrls.length);
     res.json(postsWithPresignedUrls);

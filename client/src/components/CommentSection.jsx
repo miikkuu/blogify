@@ -116,7 +116,7 @@ export default function CommentSection({ postId }) {
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="Add a comment..."
-            className="w-full p-2 border border-gray-300 rounded"
+            className="w-full p-2 border border-gray-300 rounded text-black bg-gray-200"
           />
           <button
             type="submit"
