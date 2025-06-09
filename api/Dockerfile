@@ -6,10 +6,9 @@ WORKDIR /app
 
 # Copy package.json and yarn.lock first
 COPY package*.json ./
-COPY yarn.lock ./
 
 # Install dependencies for production only
-RUN yarn install --production
+RUN npm install --production
 
 # Copy only necessary files (consider using a .dockerignore file to exclude unnecessary files)
 COPY . .

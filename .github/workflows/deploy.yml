@@ -1,123 +1,63 @@
-name: Deploy Blogify to EC2
+name: Deploy to EC2
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main # Trigger on pushes to the main branch
 
 env:
-  AWS_REGION: ${{ secrets.AWS_REGION }}
-  ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
-  EC2_HOST: ${{ secrets.EC2_HOST }}
-  EC2_USER: ${{ secrets.EC2_USER }}
+  DOCKER_HUB_USERNAME: yashrajx
+  EC2_HOST: 13.200.150.94 # Replace with your EC2 Public IP or DNS
+  EC2_USER: ubuntu # Or ec2-user, depending on your AMI
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
-    environment: Blogapp
-    
+    environment: production # Optional: Define an environment for better secret management
+
     steps:
-    - name: Checkout latest code
-      uses: actions/checkout@v2
-    
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ env.AWS_REGION }}
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }} # Store Docker Hub Access Token as a GitHub Secret
 
-    - name: Prune previous images
-      run: |
-         retain=2
-         repo=${{ secrets.ECR_REPOSITORY }}
-         images=$(aws ecr describe-images --repository-name $repo --query 'imageDetails[*].{imagePushedAt:imagePushedAt,imageDigest:imageDigest}' --output json | jq -r 'sort_by(.imagePushedAt) | reverse | .['${retain}':] | .[].imageDigest')
-         if [ -n "$images" ]; then
-            echo "Deleting old images: $images"
-            for digest in $images; do
-              aws ecr batch-delete-image --repository-name $repo --image-ids imageDigest=$digest
-            done
-         else
-            echo "No images to prune."
-         fi
-          
-    - name: Build, tag, and push images to Amazon ECR
-      env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          VITE_API_BACKEND_URL: ${{ secrets.VITE_API_BACKEND_URL }}
-          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
-          GITHUB_SHA: ${{ github.sha }}
-      run: |
-          # Build and push API image
-          docker build --no-cache -t $ECR_REGISTRY/$ECR_REPOSITORY:api-${GITHUB_SHA} ./api
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:api-${GITHUB_SHA}
-          
-          # Build and push Client image
-          docker build --no-cache -t $ECR_REGISTRY/$ECR_REPOSITORY:client-${GITHUB_SHA} \
-            --build-arg VITE_API_BACKEND_URL=$VITE_API_BACKEND_URL \
-            --build-arg VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID \
-            ./client
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:client-${GITHUB_SHA}
+      - name: Build and push API Docker image
+        run: |
+          docker build -t ${{ env.DOCKER_HUB_USERNAME }}/blogify-api:latest ./api
+          docker push ${{ env.DOCKER_HUB_USERNAME }}/blogify-api:latest
 
-    - name: Update docker-compose.yml
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        VITE_API_BACKEND_URL: ${{ secrets.VITE_API_BACKEND_URL }}
-        GITHUB_SHA: ${{ github.sha }}
-      run: |
-        cat > docker-compose.yml <<EOL
-        version: '3.8'
-        services:
-          client:
-            image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:client-${GITHUB_SHA}
-            ports:
-              - "5173:80"
-            depends_on:
-              - api
-            environment:
-              - VITE_API_BACKEND_URL=\${VITE_API_BACKEND_URL}
-              - VITE_GOOGLE_CLIENT_ID=\${VITE_GOOGLE_CLIENT_ID}
-            env_file:
-              - .env
-          api:
-            image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:api-${GITHUB_SHA}
-            ports:
-              - "4000:4000"
-            env_file:
-              - .env
-          nginx:
-            image: nginx:alpine
-            ports:
-              - "80:80"
-              - "443:443"
-            volumes:
-              - ./nginx.conf:/etc/nginx/nginx.conf:ro
-              - ./ssl:/etc/nginx/ssl:ro
-            depends_on:
-              - client
-              - api
-        EOL
-        echo "Updated docker-compose.yml:"
-        cat docker-compose.yml
+      - name: Build and push Client Docker image
+        run: |
+          docker build -t ${{ env.DOCKER_HUB_USERNAME }}/blogify-client:latest ./client \
+            --build-arg VITE_API_BACKEND_URL=${{ secrets.VITE_API_BACKEND_URL }} \
+            --build-arg VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+          docker push ${{ env.DOCKER_HUB_USERNAME }}/blogify-client:latest
 
-    - name: Deploy to EC2
-      env:
-        PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-      run: |
-        echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
-        scp -i private_key -o StrictHostKeyChecking=no docker-compose.yml $EC2_USER@$EC2_HOST:~/
-        scp -i private_key -o StrictHostKeyChecking=no nginx.conf $EC2_USER@$EC2_HOST:~/
-        ssh -i private_key -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST "
-          aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_REGISTRY
-          docker compose pull
-          docker compose up -d
-          docker system prune -af
-        "
-
-    - name: Cleanup
-      if: always()
-      run: rm -f private_key
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ env.EC2_HOST }}
+          username: ${{ env.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }} # Store EC2 SSH Private Key as a GitHub Secret
+          script: |
+            cd /home/${{ env.EC2_USER }}/blogify # Navigate to your project directory on EC2
+            # Create/update .env file on EC2 with production environment variables
+            echo "MONGODB_URI=${{ secrets.MONGODB_URI }}" > .env
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+            echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
+            echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
+            echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> .env
+            echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> .env
+            echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> .env
+            echo "AWS_BUCKET_NAME=${{ secrets.AWS_BUCKET_NAME }}" >> .env
+            echo "VITE_API_BACKEND_URL=${{ secrets.VITE_API_BACKEND_URL }}" >> .env
+            echo "VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }}" >> .env
+            echo "CORS_DOMAIN_URL=${{ secrets.CORS_DOMAIN_URL }}" >> .env
+            # Pull latest images and restart services
+            docker-compose -f docker-compose.yml pull
+            docker-compose -f docker-compose.yml up -d --build --remove-orphans
+            docker system prune -f # Clean up old images/containers
