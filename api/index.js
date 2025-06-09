@@ -14,6 +14,10 @@ connectDB(); // Connect to MongoDB
 app.use(cors({ credentials: true, origin: [`${process.env.CORS_DOMAIN_URL}`, 'http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174'] }));
 
 // Middlewares
+app.use((req, res, next) => {
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+  next();
+});
 app.use(express.json());//for parsing JSON request bodies
 app.use(cookieParser());//for parsing cookies
 app.use(morgan('dev'));//for logging HTTP requests.dev mode - for development only

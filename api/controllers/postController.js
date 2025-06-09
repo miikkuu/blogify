@@ -4,6 +4,10 @@ const { ValidationError } = require('../utils/errors');
 const postService = require('../services/postService');
 
 const createPost = asyncHandler(async (req, res) => {
+  const { error } = postValidation.validate(req.body);
+  if (error) {
+    throw new ValidationError(error.details[0].message);
+  }
 
   const { title, summary, content } = req.body;
   const postDoc = await postService.createPost(title, summary, content, req.file, req.user.id);
@@ -13,6 +17,12 @@ const createPost = asyncHandler(async (req, res) => {
 const updatePost = asyncHandler(async (req, res) => {
   const { postId } = req.params;
   const { title, summary, content } = req.body;
+
+  const { error } = postValidation.validate(req.body);
+  if (error) {
+    throw new ValidationError(error.details[0].message);
+  }
+
   const postDoc = await postService.updatePost(postId, title, summary, content, req.file, req.user.id);
   res.json(postDoc);
 });

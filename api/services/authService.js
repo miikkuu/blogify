@@ -13,11 +13,18 @@ const jwtSecret = process.env.JWT_SECRET;
  * @returns {Promise<object>} The created user document.
  */
 const registerUser = async (username, password) => {
-  const userDoc = await User.create({
-    username,
-    password: bcrypt.hashSync(password, 10),
-  });
-  return userDoc;
+  try {
+    const userDoc = await User.create({
+      username,
+      password: bcrypt.hashSync(password, 10),
+    });
+    return userDoc;
+  } catch (error) {
+    if (error.code === 11000) { // Duplicate key error for unique username
+      throw new ValidationError('Username already exists.');
+    }
+    throw new ValidationError('Failed to register user: ' + error.message);
+  }
 };
 
 /**

@@ -33,28 +33,24 @@ const verifyGoogleToken = async (idToken) => {
  * @returns {Promise<object>} The found or created user document.
  */
 const findOrCreateUser = async (googlePayload) => {
-  const { sub, name, email, picture } = googlePayload;
+  const { sub, name, email } = googlePayload;
 
-  // 1. Always try to find user by Google ID first. This is the primary identifier for Google users.
-  let user = await User.findOne({ googleId: sub });
+  // 1. Always try to find user by Google email first. This is the primary identifier for Google users.
+  let user = await User.findOne({ email: email });
 
   if (user) {
-    // If a user with this Google ID exists, return them.
+    // If a user with this Google email exists, return them.
     // This ensures that the same Google account always maps to the same user in our DB.
     return user;
   }
 
   // 2. If no user found with this Google ID, it means this is a new Google login.
   // Create a new user for this Google account.
-  // We will NOT attempt to find by email to link to existing non-Google accounts,
-  // as per the user's strict requirement "don't mix them".
 
-  // Ensure username is unique. Prioritize email if available, otherwise generate.
-  let uniqueUsername = email;
+  // Ensure username is unique. Prioritize name if available, otherwise generate.
+  let uniqueUsername = name;
   if (!uniqueUsername) {
-    // Fallback if email is not provided by Google (highly unlikely for Google accounts)
-    const uniqueSuffix = sub.substring(0, 8); // Use first 8 chars of sub for uniqueness
-    uniqueUsername = `${name || 'google_user'}_${uniqueSuffix}`;
+    uniqueUsername = email.split('@')[0]; // Extract username from email
   }
 
   // Additional safeguard for username uniqueness, in case the derived username clashes
@@ -67,10 +63,8 @@ const findOrCreateUser = async (googlePayload) => {
 
   // Create the new user for this Google account
   user = new User({
-    googleId: sub,
     username: uniqueUsername,
-    email, // Email should always be present for Google users
-    profilePicture: picture,
+    email, // Email should always be present for Google users and uniuque for Google users.
     password: `google_auth_placeholder_${sub}`, // Unique placeholder password for required field
   });
 

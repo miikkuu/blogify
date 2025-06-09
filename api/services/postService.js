@@ -2,11 +2,9 @@ const Post = require("../models/Post");
 const User = require("../models/User");
 const Comment = require("../models/Comment");
 const { NotFoundError, AuthError, ValidationError } = require('../utils/errors');
-const { upload, deleteS3Object, extractS3KeyFromUrl, hasValidAwsCredentials } = require('../external/s3Service');
+const FileService = require('../services/fileService');
 const fs = require('fs').promises;
 const path = require('path');
-
-const DEFAULT_PLACEHOLDER_IMAGE = "https://placehold.co/400x200/lightgray/darkgray?text=No+Image";
 
 /**
  * Creates a new blog post.
@@ -18,25 +16,21 @@ const DEFAULT_PLACEHOLDER_IMAGE = "https://placehold.co/400x200/lightgray/darkgr
  * @returns {Promise<object>} The created post document.
  */
 const createPost = async (title, summary, content, file, authorId) => {
-  let coverUrl = DEFAULT_PLACEHOLDER_IMAGE;
+  const coverIdentifier = FileService.getFileIdentifier(file);
+  const coverUrl = await FileService.getFileUrl(coverIdentifier);
 
-  if (file) {
-    if (hasValidAwsCredentials && file.location) {
-      coverUrl = file.location;
-    } else if (file.path) {
-      const relativePath = file.path.split('uploads/')[1] || file.filename;
-      coverUrl = `/api/uploads/${relativePath}`;
-    }
+  try {
+    const postDoc = await Post.create({
+      title,
+      summary,
+      content: content || '',
+      cover: coverUrl,
+      author: authorId,
+    });
+    return postDoc;
+  } catch (error) {
+    throw new ValidationError("Failed to create post: " + error.message);
   }
-
-  const postDoc = await Post.create({
-    title,
-    summary,
-    content,
-    cover: coverUrl,
-    author: authorId,
-  });
-  return postDoc;
 };
 
 /**
@@ -67,28 +61,12 @@ const updatePost = async (postId, title, summary, content, file, userId) => {
   postDoc.content = content;
 
   if (file) {
-    if (hasValidAwsCredentials) {
-      if (
-        postDoc.cover &&
-        postDoc.cover !== DEFAULT_PLACEHOLDER_IMAGE &&
-        !postDoc.cover.includes('placeholder')
-      ) {
-        try {
-          const oldKey = extractS3KeyFromUrl(postDoc.cover);
-          await deleteS3Object(oldKey);
-        } catch (error) {
-          console.log("Error deleting old image from S3:", error.message);
-        }
-      }
-      if (file.location && postDoc.cover !== file.location) {
-        postDoc.cover = file.location;
-      }
-    } else {
-      if (file.path) {
-        const relativePath = file.path.split('uploads/')[1] || file.filename;
-        postDoc.cover = `/api/uploads/${relativePath}`;
-      }
+    // Delete old cover if it's not the default placeholder
+    if (postDoc.cover) {
+      await FileService.deleteFile(postDoc.cover);
     }
+    const newCoverIdentifier = FileService.getFileIdentifier(file);
+    postDoc.cover = await FileService.getFileUrl(newCoverIdentifier);
   }
   await postDoc.save();
   return postDoc;
@@ -97,7 +75,7 @@ const updatePost = async (postId, title, summary, content, file, userId) => {
 /**
  * Retrieves posts by a specific user.
  * @param {string} userId - The ID of the user whose posts are to be retrieved.
- * @returns {Promise<{postsWithPresignedUrls: object[], username: string}>} An object containing the posts and the username.
+ * @returns {Promise<{postsWithResolvedUrls: object[], username: string}>} An object containing the posts and the username.
  */
 const getPostsByUser = async (userId) => {
   const user = await User.findById(userId);
@@ -109,17 +87,20 @@ const getPostsByUser = async (userId) => {
     .limit(20)
     .exec();
 
-  const postsWithPresignedUrls = posts.map(post => ({
-    ...post.toObject(),
-    cover: post.cover || DEFAULT_PLACEHOLDER_IMAGE
+  const postsWithResolvedUrls = await Promise.all(posts.map(async (post) => {
+    const coverUrl = await FileService.getFileUrl(post.cover);
+    return {
+      ...post.toObject(),
+      cover: coverUrl,
+    };
   }));
 
-  return { postsWithPresignedUrls, username };
+  return { postsWithResolvedUrls, username };
 };
 
 /**
  * Retrieves all blog posts.
- * @returns {Promise<object[]>} An array of post documents.
+ * @returns {Promise<object[]>} An array of post documents with resolved cover URLs.
  */
 const getAllPosts = async () => {
   const posts = await Post.find()
@@ -128,18 +109,21 @@ const getAllPosts = async () => {
     .limit(20)
     .exec();
 
-  const postsWithPresignedUrls = posts.map(post => ({
-    ...post.toObject(),
-    cover: post.cover || DEFAULT_PLACEHOLDER_IMAGE
+  const postsWithResolvedUrls = await Promise.all(posts.map(async (post) => {
+    const coverUrl = await FileService.getFileUrl(post.cover);
+    return {
+      ...post.toObject(),
+      cover: coverUrl,
+    };
   }));
 
-  return postsWithPresignedUrls;
+  return postsWithResolvedUrls;
 };
 
 /**
  * Retrieves a single post by its ID.
  * @param {string} id - The ID of the post.
- * @returns {Promise<object>} The post document.
+ * @returns {Promise<object>} The post document with a resolved cover URL.
  * @throws {NotFoundError} If the post is not found.
  */
 const getPostById = async (id) => {
@@ -152,12 +136,14 @@ const getPostById = async (id) => {
     throw new NotFoundError("Post not found");
   }
 
-  const postWithPresignedUrl = {
+  const coverUrl = await FileService.getFileUrl(postDoc.cover);
+
+  const postWithResolvedUrl = {
     ...postDoc.toObject(),
-    cover: postDoc.cover || DEFAULT_PLACEHOLDER_IMAGE
+    cover: coverUrl,
   };
 
-  return postWithPresignedUrl;
+  return postWithResolvedUrl;
 };
 
 /**
@@ -202,27 +188,8 @@ const deletePost = async (postId, userId) => {
     throw new AuthError("You are not authorized to delete this post");
   }
 
-  if (
-    postDoc.cover &&
-    postDoc.cover !== DEFAULT_PLACEHOLDER_IMAGE &&
-    !postDoc.cover.includes('placeholder')
-  ) {
-    if (hasValidAwsCredentials) {
-      try {
-        const coverKey = extractS3KeyFromUrl(postDoc.cover);
-        await deleteS3Object(coverKey);
-      } catch (error) {
-        console.log("Error deleting image from S3:", error.message);
-      }
-    } else if (postDoc.cover.startsWith('/api/uploads/')) {
-      try {
-        const filename = postDoc.cover.split('/').pop();
-        const filePath = path.join(__dirname, '..', 'uploads', filename);
-        await fs.unlink(filePath);
-      } catch (error) {
-        console.log("Error deleting local image:", error.message);
-      }
-    }
+  if (postDoc.cover) {
+    await FileService.deleteFile(postDoc.cover);
   }
 
   await Comment.deleteMany({ postId: postId });
@@ -257,12 +224,15 @@ const searchPosts = async (searchQuery) => {
       .exec();
   }
 
-  const postsWithPresignedUrls = results.map(post => ({
-    ...post.toObject(),
-    cover: post.cover || DEFAULT_PLACEHOLDER_IMAGE
+  const postsWithResolvedUrls = await Promise.all(results.map(async (post) => {
+    const coverUrl = await FileService.getFileUrl(post.cover);
+    return {
+      ...post.toObject(),
+      cover: coverUrl,
+    };
   }));
 
-  return postsWithPresignedUrls;
+  return postsWithResolvedUrls;
 };
 
 module.exports = {

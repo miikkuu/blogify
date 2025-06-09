@@ -12,7 +12,10 @@ const errorMiddleware = (err, req, res, next) => {
   } else if (err.name === 'CastError' && err.kind === 'ObjectId') {
     statusCode = 404;
     message = 'Resource not found';
-  } else if (err.name === 'ValidationError') {
+  } else if (err.name === 'ValidationError' && err.details && err.details[0]) { // For Joi validation errors
+    statusCode = 400;
+    message = err.details[0].message;
+  } else if (err.name === 'ValidationError') { // For Mongoose validation errors
     statusCode = 400;
     message = Object.values(err.errors).map(val => val.message).join(', ');
   } else if (err.code === 11000) {

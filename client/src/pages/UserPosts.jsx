@@ -15,9 +15,9 @@ export default function UserPosts() {
         fetch(`${import.meta.env.VITE_API_BACKEND_URL}/posts/user/${id}`)
             .then((response) => response.json())
             .then((postsAndUser) => {
-                setPosts(postsAndUser?.postsWithPresignedUrls || []);
+                setPosts(postsAndUser?.postsWithResolvedUrls || []);
                 setUsername(postsAndUser?.username || null);
-                setPostsExist(postsAndUser?.postsWithPresignedUrls?.length > 0);
+                setPostsExist(postsAndUser?.postsWithResolvedUrls?.length > 0);
                 setIsLoading(false); // Set isLoading to false after data is fetched
             })
             .catch((error) => {

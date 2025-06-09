@@ -2,7 +2,7 @@ const express = require('express');
 const { createPost, updatePost, getPosts, getPostsByUser, getPostById, updateLikeStatus, searchPosts, deletePost } = require('../controllers/postController');
 const { getCommentsForPost, addCommentToPost, deleteComment } = require('../controllers/commentController');
 const authMiddleware = require('../middlewares/authMiddleware');
-const { upload } = require('../external/s3Service'); // Import upload from the new s3Service
+const { upload } = require('../external/s3Service'); // Import upload from s3Service
 const validate = require('../middlewares/validationMiddleware');
 const { postValidation } = require('../validations/postValidation');
 

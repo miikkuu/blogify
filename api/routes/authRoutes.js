@@ -16,7 +16,7 @@ router.post('/logout', logout);
 // Google OAuth route
 router.post('/google', asyncHandler(async (req, res) => {
   const { token: idToken } = req.body;
-
+console.log('Google OAuth route hit');
   if (!idToken) {
     throw new AuthError('ID token not provided.');
   }
@@ -27,7 +27,9 @@ router.post('/google', asyncHandler(async (req, res) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'lax'
-  }).json({
+  });
+
+  res.json({
     id: user._id,
     username: user.username,
     email: user.email,

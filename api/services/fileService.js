@@ -1,22 +1,28 @@
 const fs = require('fs');
 const path = require('path');
-const { S3Client, DeleteObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3'); // Ensure S3Client is imported if used directly
+const { DeleteObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
-const { s3Client: configuredS3Client, hasValidAwsCredentials } = require('../config/s3Config'); // Use initialized client and check
+const { s3Client: configuredS3Client, hasValidAwsCredentials } = require('../external/s3Service'); // Changed import path
 
 // Load environment variables
-require('dotenv').config(); // Ensure .env is loaded
+require('dotenv').config();
 
 class FileService {
     constructor() {
         this.useS3 = hasValidAwsCredentials;
-        this.s3Client = configuredS3Client; // Use the s3Client from s3Config
+        this.s3Client = configuredS3Client;
         this.bucketName = process.env.AWS_BUCKET_NAME;
-        this.defaultPlaceholderImage = process.env.DEFAULT_PLACEHOLDER_IMAGE || '/api/uploads/placeholder.webp'; // Default placeholder
-        this.localUploadsPath = path.join(__dirname, '..', 'uploads'); // Define once
+        this.defaultPlaceholderImage = process.env.DEFAULT_PLACEHOLDER_IMAGE || '/api/uploads/placeholder.webp';
+        this.localUploadsPath = path.join(__dirname, '..', 'uploads');
 
         if (this.useS3 && (!this.s3Client || !this.bucketName)) {
             console.warn('[FileService] S3 is configured but S3 client or bucket name is missing. File operations may fail.');
+        }
+
+        if (this.useS3) {
+            console.log('[FileService] Initialized to use AWS S3 for file storage.');
+        } else {
+            console.log('[FileService] Initialized to use local disk for file storage.');
         }
     }
 
@@ -70,7 +76,7 @@ class FileService {
                 console.log(`[FileService] Successfully deleted S3 file: ${s3Key}`);
             } catch (error) {
                 console.error(`[FileService] Error deleting S3 file ${fileIdentifier}:`, error.message);
-                throw error; // Re-throw the error
+                throw error;
             }
         } else {
             try {
@@ -83,7 +89,7 @@ class FileService {
                 }
             } catch (error) {
                 console.error(`[FileService] Error deleting local file ${fileIdentifier}:`, error.message);
-                throw error; // Re-throw the error
+                throw error;
             }
         }
     }
@@ -112,7 +118,7 @@ class FileService {
         if (this.useS3) {
             if (!this.s3Client) {
                 console.error('[FileService] S3 client not initialized. Cannot get file URL.');
-                return this.defaultPlaceholderImage; // Fallback
+                return this.defaultPlaceholderImage;
             }
             try {
                 // fileIdentifier is expected to be an S3 key here
@@ -125,7 +131,7 @@ class FileService {
                 return url;
             } catch (error) {
                 console.error(`[FileService] Error generating presigned URL for S3 key ${fileIdentifier}:`, error.message);
-                return this.defaultPlaceholderImage; // Fallback on error
+                return this.defaultPlaceholderImage;
             }
         } else {
             // For local storage, construct the path relative to the server's static serving

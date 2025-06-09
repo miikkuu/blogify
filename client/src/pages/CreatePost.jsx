@@ -7,7 +7,7 @@ const API_BACKEND_URL = import.meta.env.VITE_API_BACKEND_URL;
 const CreatePost = () => {
   const [title, setTitle] = useState('');
   const [summary, setSummary] = useState('');
-  const [content, setContent] = useState(null);
+  const [content, setContent] = useState('');
   const [file, setFile] = useState(null);
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -31,11 +31,11 @@ const CreatePost = () => {
         navigate('/');
       } else {
         const result = await response.json();
-        throw new Error(result.error || 'Failed to create post');
+        setError(result.message || 'Failed to create post'); // Use result.message
       }
     } catch (error) {
       console.error('Error creating post:', error);
-      setError('Failed to create post');
+      setError(error.message || 'Failed to create post'); // Use error.message for network/other errors
     }
   };
 
