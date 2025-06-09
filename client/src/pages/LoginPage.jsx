@@ -2,6 +2,7 @@ import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../contexts/UserContext";
 import { GoogleLoginButton } from "../components/GoogleLoginButton";
+import config from '../config';
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -21,7 +22,9 @@ export default function LoginPage() {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_BACKEND_URL}/auth/login`,
+
+
+        `${config.VITE_API_BACKEND_URL}/auth/login`,
         {
           method: "POST",
           body: JSON.stringify({ username, password }),

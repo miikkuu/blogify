@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import Post from "../components/Post";
 import debounce from 'lodash.debounce';
-
+import config from '../config';
 export default function IndexPage() {
   const [posts, setPosts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -15,8 +15,9 @@ export default function IndexPage() {
     try {
       // If there's a search term, use the search endpoint, otherwise use the regular posts endpoint
       const endpoint = searchTerm
-        ? `${import.meta.env.VITE_API_BACKEND_URL}/posts/search?search=${searchTerm}`
-        : `${import.meta.env.VITE_API_BACKEND_URL}/posts`;
+
+        ? `${config.VITE_API_BACKEND_URL}/posts/search?search=${searchTerm}`
+        : `${config.VITE_API_BACKEND_URL}/posts`;
 
       const response = await fetch(endpoint);
       if (!response.ok) {

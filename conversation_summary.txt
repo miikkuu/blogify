@@ -1,0 +1,102 @@
+**Project Context: Blogify Application Deployment**
+
+The project is a full-stack Blogify application with a React frontend, Node.js backend (API), and Nginx acting as a reverse proxy. The application is containerized using Docker and orchestrated with Docker Compose. The deployment target is an AWS EC2 instance, with CI/CD automated via GitHub Actions.
+
+*   **Frontend (Client):** React application, served by Nginx.
+*   **Backend (API):** Node.js application, interacts with MongoDB Atlas and AWS S3.
+*   **Nginx:** Reverse proxy, serving the frontend and routing API requests to the backend.
+*   **Docker/Docker Compose:** Used for containerization and orchestration of client, api, and nginx services.
+*   **Deployment Environment:** AWS EC2 instance.
+
+**Initial Problem Statement:**
+
+The main problem was that client-side environment variables (e.g., `VITE_API_BACKEND_URL`, `VITE_GOOGLE_CLIENT_ID`) were being "baked" into the JavaScript bundles during the client build phase. This meant that once the client Docker image was built and deployed to EC2, it would not accept runtime environment variables, leading to failures in production. The API image was working correctly.
+
+**Proposed Solution (Runtime Environment Variable Injection for Client):**
+
+The agreed-upon plan was to implement a runtime environment variable injection strategy for the client application using Nginx. This involves:
+
+1.  **Centralized Client Configuration:** Create a `client/src/config.js` file to act as a single source for environment variables, conditionally checking `window.env` (for production) or `import.meta.env` (for development).
+2.  **Dynamic `config.js` Generation:** Use a `config.template.js` file with placeholders and an `nginx-entrypoint.sh` script to dynamically generate the actual `config.js` file within the Nginx container at startup, populated with environment variables passed via Docker Compose.
+3.  **Nginx Serving:** Configure Nginx to serve this dynamically generated `config.js` and the client's static assets.
+
+**Files Worked On and Changes Made:**
+
+*   **`client/src/config.js` (NEW):**
+    *   Created to centralize environment variable access:
+        ```javascript
+        const config = {
+          VITE_API_BACKEND_URL: window.env?.VITE_API_BACKEND_URL || import.meta.env.VITE_API_BACKEND_URL,
+          VITE_GOOGLE_CLIENT_ID: window.env?.VITE_GOOGLE_CLIENT_ID || import.meta.env.VITE_GOOGLE_CLIENT_ID,
+        };
+        export default config;
+        ```
+    *   All client-side code (`.jsx` files in `client/src/components` and `client/src/pages`) that previously used `import.meta.env.VITE_...` was updated to `import config from '../config';` and then `config.VITE_...`.
+
+*   **`client/index.html` (MODIFIED):**
+    *   Added `<script src="/config.js"></script>` in the `<head>` section to load the dynamically generated configuration.
+
+*   **`client/public/config.template.js` (NEW):**
+    *   Created with placeholders for environment variables:
+        ```javascript
+        window.env = {
+          VITE_API_BACKEND_URL: "${VITE_API_BACKEND_URL}",
+          VITE_GOOGLE_CLIENT_ID: "${VITE_GOOGLE_CLIENT_ID}",
+        };
+        ```
+
+*   **`client/nginx-entrypoint.sh` (NEW, then MOVED from root):**
+    *   Created to substitute environment variables into `config.template.js` and start Nginx:
+        ```bash
+        #!/bin/sh
+        envsubst '$$VITE_API_BACKEND_URL,$$VITE_GOOGLE_CLIENT_ID' < /usr/share/nginx/html/config.template.js > /usr/share/nginx/html/config.js
+        exec nginx -g 'daemon off;'
+        ```
+    *   **Moved from root directory to `client/` directory** to be within the Docker build context.
+
+*   **`client/Dockerfile` (MODIFIED):**
+    *   Updated to copy `public/config.template.js` and `nginx-entrypoint.sh` into the Nginx stage.
+    *   Set `ENTRYPOINT ["/docker-entrypoint.sh"]`.
+
+*   **`docker-compose.yml` (MODIFIED):**
+    *   Passed `VITE_API_BACKEND_URL` and `VITE_GOOGLE_CLIENT_ID` as environment variables to the `nginx` service.
+    *   **Removed `healthcheck` from `api` service** to simplify startup and avoid `curl` dependency issues.
+    *   **Changed `depends_on` conditions** for `client` and `nginx` services from `service_healthy` to `service_started` for the `api` service.
+
+*   **`nginx.conf` (MODIFIED):**
+    *   Configured the `location /` block to serve static files directly from `/usr/share/nginx/html` using `root`, `index`, and `try_files`.
+    *   Added a specific `location = /config.js` block to ensure `config.js` is served directly and not cached.
+
+*   **`api/Dockerfile` (MODIFIED):**
+    *   Added `RUN apk add --no-cache curl` to install `curl` for potential future health checks or debugging, although the health check was later removed from `docker-compose.yml`.
+
+*   **`deploy.md` (MODIFIED):**
+    *   Updated to reflect all the changes made to Dockerfiles, `docker-compose.yml`, and `nginx.conf`. (Note: User indicated this file might not be fully up-to-date with current configs, but changes were applied to it based on the plan).
+
+**Debugging Steps and Resolutions:**
+
+1.  **GitHub Actions "not found" errors for `config.template.js` and `nginx-entrypoint.sh`:**
+    *   **Cause:** Files were not in the correct location relative to the Docker build context (`./client`). `nginx-entrypoint.sh` was in the root, and `client/public/config.template.js` was referenced with `client/public/` prefix in Dockerfile.
+    *   **Resolution:** Moved `nginx-entrypoint.sh` to `client/` directory. Corrected `COPY` paths in `client/Dockerfile` to `public/config.template.js` and `nginx-entrypoint.sh`.
+
+2.  **API container `health: starting` / `curl` not found error:**
+    *   **Cause:** The `node:18-alpine` base image for the API container did not include `curl`, which was required by the API's health check. This prevented dependent containers from starting.
+    *   **Resolution:** Installed `curl` in `api/Dockerfile` (`apk add --no-cache curl`). Subsequently, the health check was removed from `docker-compose.yml` to simplify and avoid this dependency for immediate startup.
+
+3.  **Nginx SSL certificate error (`No such file or directory`):**
+    *   **Cause:** The `ssl` directory on the EC2 instance contained symbolic links to the actual Let's Encrypt certificate files (`/etc/letsencrypt/live/...`). When mounted into the Nginx container, the container could not follow these symlinks because the target paths were outside its isolated filesystem.
+    *   **Resolution:** Replaced the symbolic links in `/home/ubuntu/blogify/ssl` with the actual `fullchain.pem` and `privkey.pem` files copied directly from `/etc/letsencrypt/live/blogify-app.work.gd/`. Permissions were also verified/set.
+
+4.  **Local DNS Mismatch (`dig` vs. `NSLookup`):**
+    *   **Cause:** Your local Ubuntu machine's DNS cache was stale, or its local DNS resolver (127.0.0.53) was providing outdated information, even though public DNS resolvers showed the correct IP.
+    *   **Resolution:** Temporarily modified `/etc/resolv.conf` to use a public DNS resolver (8.8.8.8) to bypass the local caching issue.
+
+**Current Status and Remaining Problem:**
+
+*   All Docker containers (`api`, `client`, `nginx`) are now successfully created and running.
+*   DNS resolution from public resolvers is correct, and the site is reachable via HTTP.
+*   **Current Problem:** The website displays the default Nginx "Welcome to Nginx!" page instead of the frontend application. This indicates that while Nginx is running, it's not correctly serving the client's static files from its web root.
+
+**Next Diagnostic Step (Last Attempted):**
+
+The last step attempted was to inspect the contents of the Nginx container's web root (`docker exec blogify_nginx_1 ls -la /usr/share/nginx/html`) to verify if the client's build output was correctly copied.

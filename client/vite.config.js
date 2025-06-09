@@ -8,4 +8,9 @@ export default defineConfig({
   server: {
     port: 5174,
   },
+  build: {
+    rollupOptions: {
+      external: ['/config.js'],
+    },
+  },
 });

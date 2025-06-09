@@ -4,9 +4,11 @@ import { UserContext } from "../contexts/UserContext";
 import { GoogleLogin } from "@react-oauth/google"; // Moved to top-level
 
 // Check if Google Client ID is provided and valid
-const hasValidGoogleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID &&
-                               import.meta.env.VITE_GOOGLE_CLIENT_ID !== 'your_google_client_id' &&
-                               import.meta.env.VITE_GOOGLE_CLIENT_ID.length > 10;
+import config from '../config';
+
+const hasValidGoogleClientId = config.VITE_GOOGLE_CLIENT_ID &&
+                               config.VITE_GOOGLE_CLIENT_ID !== 'your_google_client_id' &&
+                               config.VITE_GOOGLE_CLIENT_ID.length > 10;
 
 export const GoogleLoginButton = (props) => {
   // If Google Client ID is not valid, don't render anything
@@ -21,7 +23,7 @@ export const GoogleLoginButton = (props) => {
     const token = credential;
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_BACKEND_URL}/gauth/google`,
+        `${config.VITE_API_BACKEND_URL}/gauth/google`,
         {
           method: "POST",
           headers: {

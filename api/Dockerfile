@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies for production only
-RUN npm install --production
+RUN apk add --no-cache curl && npm install --production
 
 # Copy only necessary files (consider using a .dockerignore file to exclude unnecessary files)
 COPY . .

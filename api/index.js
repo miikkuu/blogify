@@ -40,6 +40,10 @@ if (hasValidGoogleClientId) {
   console.log('Google OAuth routes not registered: No valid Google Client ID provided');
 }
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.status(200).send('API is healthy');
+});
 
 // Error handling middleware
 app.use(errorMiddleware);
