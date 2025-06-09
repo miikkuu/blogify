@@ -41,7 +41,6 @@ services:
       - "80:80" # Expose Nginx port for the world. eg here the first 80 is exposed to the outside world and second 80 is inside the container
       - "443:443" # Expose the Nginx service to the outside world
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro # For Nginx configuration files. eg: here nginx.conf is assumed to contain Nginx configuration
       - ./ssl:/etc/nginx/ssl:ro # For SSL certificates .eg: here ssl folder is assumed to contain certificate and key files it is then mounted to /etc/nginx/ssl
     depends_on:
       client:
