@@ -1,6 +1,5 @@
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
-import config from '../config';
 export default function Post({ _id, title, summary, cover, createdAt, author }) {
   // Format the date to "21 July 2023 15:30" style
   const formattedDate = format(new Date(createdAt), 'd MMMM yyyy HH:mm');
@@ -17,7 +16,7 @@ export default function Post({ _id, title, summary, cover, createdAt, author }) 
             <img
               className="w-full object-cover h-48 md:h-[200px]"
 
-              src={cover.startsWith('http') ? cover : `${config.VITE_API_BACKEND_URL.replace('/api', '')}${cover}`}
+              src={cover.startsWith('http') ? cover : `${window.env.VITE_API_BACKEND_URL.replace('/api', '')}${cover}`}
               alt={title}
               onError={handleImageError}
             />

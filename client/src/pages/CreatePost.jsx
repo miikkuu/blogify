@@ -2,9 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Editor from '../components/Editor';
 
-import config from '../config';
 
-const API_BACKEND_URL = config.VITE_API_BACKEND_URL;
+const API_BACKEND_URL = window.env.VITE_API_BACKEND_URL;
 
 const CreatePost = () => {
   const [title, setTitle] = useState('');

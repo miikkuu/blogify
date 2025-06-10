@@ -58,7 +58,8 @@ jobs:
             echo "VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }}" >> .env
             echo "CORS_DOMAIN_URL=${{ secrets.CORS_DOMAIN_URL }}" >> .env
             # Pull latest images and restart services
-            docker-compose -f docker-compose.yml pull
-            docker-compose -f docker-compose.yml up -d --build --remove-orphans
-            docker system prune -f # Clean up old images/containers
+            docker-compose pull
+            docker-compose down --remove-orphans
+            docker system prune -a -f # Clean up all unused Docker resources
+            docker-compose up -d
 

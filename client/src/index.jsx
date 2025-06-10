@@ -1,14 +1,15 @@
-import React from "react"; 
+import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import "./index.css";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
+// Safely access environment variables
+const googleClientId = window.env?.VITE_GOOGLE_CLIENT_ID || '';
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-import config from './config';
-
-    <GoogleOAuthProvider clientId={config.VITE_GOOGLE_CLIENT_ID}>
+    <GoogleOAuthProvider clientId={googleClientId}>
       <App />
     </GoogleOAuthProvider>
   </React.StrictMode>

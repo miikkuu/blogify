@@ -3,9 +3,8 @@ import { format } from "date-fns";
 import { UserContext } from "../contexts/UserContext";
 import { Link } from "react-router-dom";
 
-import config from '../config';
 
-const API_BACKEND_URL = config.VITE_API_BACKEND_URL;
+const API_BACKEND_URL = window.env.VITE_API_BACKEND_URL;
 
 export default function CommentSection({ postId }) {
   const [comments, setComments] = useState([]);

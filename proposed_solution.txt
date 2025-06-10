@@ -1,0 +1,65 @@
+# Blogify Deployment Solution
+
+## Core Challenge
+Deploy MERN stack application on EC2 using Docker Compose and Nginx with:
+- Prebuilt Docker images
+- Environment variable substitution
+- Secure configuration
+- Zero-downtime updates
+
+## Successful Approach
+1. **Client Configuration**:
+   - Generated config.js during Docker build
+   - Accessed variables safely: `window.env?.VARIABLE_NAME`
+   - Loaded via script tag in index.html
+
+2. **Nginx Setup**:
+```nginx
+location = /config.js {
+    alias /usr/share/nginx/html/config.js;
+    expires off;
+    add_header Cache-Control "no-store, no-cache, must-revalidate";
+}
+```
+
+3. **Docker Optimization**:
+```dockerfile
+# Generate config.js with environment variables
+RUN echo "window.env = {" > ./public/config.js && \
+    echo "  VITE_API_BACKEND_URL: '${VITE_API_BACKEND_URL}'," >> ./public/config.js && \
+    echo "  VITE_GOOGLE_CLIENT_ID: '${VITE_GOOGLE_CLIENT_ID}'" >> ./public/config.js && \
+    echo "};" >> ./public/config.js
+```
+
+4. **React Safe Access**:
+```javascript
+const googleClientId = window.env?.VITE_GOOGLE_CLIENT_ID || '';
+```
+
+## Deployment Workflow
+1. Build images:
+```bash
+docker compose build
+```
+
+2. Start services:
+```bash
+docker compose up -d
+```
+
+3. Verify:
+```bash
+curl -I https://your-domain.com/config.js
+```
+
+## Why This Works
+- Build-time config generation ensures variables are baked into the image
+- Nginx alias directive serves config.js correctly
+- Safe access pattern prevents runtime errors
+- Simplified architecture with no runtime substitution needed
+
+## Future Improvements
+1. Implement CI/CD pipeline
+2. Add health checks
+3. Set up logging and monitoring
+4. Implement automatic SSL renewal

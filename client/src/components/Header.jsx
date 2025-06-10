@@ -6,18 +6,17 @@ import { GoogleLoginButton } from "./GoogleLoginButton";
 import { googleLogout } from '@react-oauth/google';
 
 // Check if Google Client ID is provided and valid
-import config from '../config';
 
-const hasValidGoogleClientId = config.VITE_GOOGLE_CLIENT_ID &&
-                               config.VITE_GOOGLE_CLIENT_ID !== 'your_google_client_id' &&
-                               config.VITE_GOOGLE_CLIENT_ID.length > 10;
+const hasValidGoogleClientId = window.env.VITE_GOOGLE_CLIENT_ID &&
+                               window.env.VITE_GOOGLE_CLIENT_ID !== 'your_google_client_id' &&
+                               window.env.VITE_GOOGLE_CLIENT_ID.length > 10;
 
 export default function Header() {
   const { userInfo, setUserInfo } = useContext(UserContext);
   const { username, id } = userInfo || {};
 
   function logout() {
-    fetch(`${config.VITE_API_BACKEND_URL}/auth/logout`, {
+    fetch(`${window.env.VITE_API_BACKEND_URL}/auth/logout`, {
       credentials: "include",
       method: "POST",
     });
