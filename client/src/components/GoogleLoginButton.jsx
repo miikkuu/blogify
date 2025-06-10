@@ -48,7 +48,7 @@ export const GoogleLoginButton = (props) => {
       onError={() => {
         console.log("Login Failed");
       }}
-      useOneTap={true}
+      useOneTap={false}
       {...props}
     />
   );
