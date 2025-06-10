@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { GoogleLoginButton } from "../components/GoogleLoginButton";
+import { VITE_API_BACKEND_URL } from '../utils/env';
+
 export default function RegisterPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -18,8 +20,7 @@ export default function RegisterPage() {
 
     try {
       const response = await fetch(
-
-        `${window.env.VITE_API_BACKEND_URL}/auth/register`,
+        `${VITE_API_BACKEND_URL}/auth/register`,
         {
           method: "POST",
           body: JSON.stringify({ username, password }),

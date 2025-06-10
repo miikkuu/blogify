@@ -2,12 +2,13 @@ import { useContext } from "react";
 import React from "react";
 import { UserContext } from "../contexts/UserContext";
 import { GoogleLogin } from "@react-oauth/google";
+import { VITE_API_BACKEND_URL, VITE_GOOGLE_CLIENT_ID } from '../utils/env';
 
 // Check if Google Client ID is provided and valid
-const hasValidGoogleClientId = window.env?.VITE_GOOGLE_CLIENT_ID &&
-                               window.env.VITE_GOOGLE_CLIENT_ID !== 'your_google_client_id' &&
-                               window.env.VITE_GOOGLE_CLIENT_ID.length > 10;
-
+const hasValidGoogleClientId = VITE_GOOGLE_CLIENT_ID &&
+                               VITE_GOOGLE_CLIENT_ID !== 'your_google_client_id' &&
+                               VITE_GOOGLE_CLIENT_ID.length > 10;
+  
 export const GoogleLoginButton = (props) => {
   // If Google Client ID is not valid, don't render anything
   if (!hasValidGoogleClientId) {
@@ -21,7 +22,7 @@ export const GoogleLoginButton = (props) => {
     const token = credential;
     try {
       const response = await fetch(
-        `${window.env?.VITE_API_BACKEND_URL}/gauth/google`,
+        `${VITE_API_BACKEND_URL}/gauth/google`,
         {
           method: "POST",
           headers: {
@@ -48,7 +49,7 @@ export const GoogleLoginButton = (props) => {
       onError={() => {
         console.log("Login Failed");
       }}
-      useOneTap={false}
+      useOneTap={true}
       {...props}
     />
   );

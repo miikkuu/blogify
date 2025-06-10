@@ -4,19 +4,19 @@ import { UserContext } from "../contexts/UserContext";
 import DarkModeToggle from "./DarkModeToggle";
 import { GoogleLoginButton } from "./GoogleLoginButton";
 import { googleLogout } from '@react-oauth/google';
-
-// Check if Google Client ID is provided and valid
-
-const hasValidGoogleClientId = window.env.VITE_GOOGLE_CLIENT_ID &&
-                               window.env.VITE_GOOGLE_CLIENT_ID !== 'your_google_client_id' &&
-                               window.env.VITE_GOOGLE_CLIENT_ID.length > 10;
+import { VITE_API_BACKEND_URL, VITE_GOOGLE_CLIENT_ID } from '../utils/env';
 
 export default function Header() {
   const { userInfo, setUserInfo } = useContext(UserContext);
   const { username, id } = userInfo || {};
 
+  // Check if Google Client ID is provided and valid
+  const hasValidGoogleClientId = VITE_GOOGLE_CLIENT_ID &&
+                                 VITE_GOOGLE_CLIENT_ID !== 'your_google_client_id' &&
+                                 VITE_GOOGLE_CLIENT_ID.length > 10;
+
   function logout() {
-    fetch(`${window.env.VITE_API_BACKEND_URL}/auth/logout`, {
+    fetch(`${VITE_API_BACKEND_URL}/auth/logout`, {
       credentials: "include",
       method: "POST",
     });

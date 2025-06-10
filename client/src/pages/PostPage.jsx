@@ -2,6 +2,8 @@ import { useEffect , useContext, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom"; // Step 1: Import useNavigate
 import { UserContext } from "../contexts/UserContext";
 import CommentSection from "../components/CommentSection";
+import { VITE_API_BACKEND_URL } from '../utils/env';
+
 export default function 
 PostPage() {
   const [postInfo, setPostInfo] = useState(null);
@@ -11,11 +13,9 @@ PostPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   async function fetchPostInfo() {
+    
     try {
-
-
-
-      const response = await fetch(`${window.env.VITE_API_BACKEND_URL}/posts/${id}`);
+      const response = await fetch(`${VITE_API_BACKEND_URL}/posts/${id}`);
       if (!response.ok) {
         throw new Error("Failed to fetch post");
       }
@@ -34,7 +34,7 @@ PostPage() {
     const status = isLiked ? `unlike` : `like`;
     try {
       const response = await fetch(
-        `${window.env.VITE_API_BACKEND_URL}/posts/${id}/likeStatus?action=${status}`,
+        `${VITE_API_BACKEND_URL}/posts/${id}/likeStatus?action=${status}`,
         {
           method: "POST",
           credentials: "include",
@@ -55,7 +55,7 @@ PostPage() {
 
   async function handleDelete() {
     try {
-      const response = await fetch(`${window.env.VITE_API_BACKEND_URL}/posts/${id}`, {
+      const response = await fetch(`${VITE_API_BACKEND_URL}/posts/${id}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -154,7 +154,7 @@ PostPage() {
           src={postInfo.cover ?
                (postInfo.cover.startsWith('http') ?
                 postInfo.cover :
-                `${window.env.VITE_API_BACKEND_URL.replace('/api', '')}${postInfo.cover}`)
+                `${VITE_API_BACKEND_URL.replace('/api', '')}${postInfo.cover}`)
                : "https://placehold.co/400x200/lightgray/darkgray?text=No+Image"}
           alt={postInfo.title}
           className="w-full h-64 object-cover rounded"

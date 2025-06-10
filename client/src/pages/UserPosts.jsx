@@ -1,6 +1,8 @@
 import {  useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import Post from "../components/Post";
+import { VITE_API_BACKEND_URL } from '../utils/env';
+
 export default function UserPosts() {
     const { id } = useParams();
     const [posts, setPosts] = useState([]);
@@ -12,7 +14,7 @@ export default function UserPosts() {
         setIsLoading(true); // Set isLoading to true before fetching data
 
 
-        fetch(`${window.env.VITE_API_BACKEND_URL}/posts/user/${id}`)
+        fetch(`${VITE_API_BACKEND_URL}/posts/user/${id}`)
             .then((response) => response.json())
             .then((postsAndUser) => {
                 setPosts(postsAndUser?.postsWithPresignedUrls || []);

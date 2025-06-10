@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Navigate, useParams } from "react-router-dom";
 import Editor from "../components/Editor";
+import { VITE_API_BACKEND_URL } from '../utils/env';
 
 
-const API_BACKEND_URL = window.env.VITE_API_BACKEND_URL;
+const API_BACKEND_URL = VITE_API_BACKEND_URL;
 
 const EditPost = () => {
   const { id } = useParams();

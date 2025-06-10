@@ -5,7 +5,9 @@ import "./index.css";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 // Safely access environment variables
-const googleClientId = window.env?.VITE_GOOGLE_CLIENT_ID || '';
+import { VITE_GOOGLE_CLIENT_ID } from './utils/env';
+
+const googleClientId = VITE_GOOGLE_CLIENT_ID || '';
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
